@@ -11,19 +11,19 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          green: "#7ED321",
-          "green-dark": "#5FAE12",
-          aqua: "#2EC4FF",
-          "aqua-dark": "#0EA5E0",
-          red: "#FF3B30",
+          green: "#C4EB50",
+          "green-dark": "#6FA82A",
+          aqua: "#2E6DD7",
+          "aqua-dark": "#1F4F9E",
+          red: "#E0312A",
         },
         surface: {
           DEFAULT: "#FFFFFF",
-          soft: "#F6F9FA",
+          soft: "#F6F8F7",
           mist: "#EFF6F4",
         },
         ink: {
-          DEFAULT: "#0E1A1A",
+          DEFAULT: "#16211B",
           soft: "#4B5B5A",
         },
         midnight: {
@@ -49,11 +49,11 @@ const config: Config = {
         card: "0 1px 2px rgba(14,26,26,0.04), 0 12px 32px -12px rgba(14,26,26,0.10)",
       },
       backgroundImage: {
-        "brand-gradient": "linear-gradient(135deg, #7ED321 0%, #2EC4FF 100%)",
+        "brand-gradient": "linear-gradient(135deg, #E0312A 0%, #2E6DD7 100%)",
         "brand-gradient-soft":
           "linear-gradient(135deg, rgba(126,211,33,0.16) 0%, rgba(46,196,255,0.16) 100%)",
         "hero-mesh":
-          "radial-gradient(60% 50% at 15% 20%, rgba(126,211,33,0.55) 0%, rgba(126,211,33,0) 60%), radial-gradient(55% 50% at 85% 15%, rgba(46,196,255,0.55) 0%, rgba(46,196,255,0) 60%), radial-gradient(70% 60% at 50% 100%, rgba(46,196,255,0.35) 0%, rgba(46,196,255,0) 60%)",
+          "radial-gradient(60% 50% at 15% 20%, rgba(224,49,42,0.45) 0%, rgba(224,49,42,0) 60%), radial-gradient(55% 50% at 85% 15%, rgba(46,196,255,0.55) 0%, rgba(46,196,255,0) 60%), radial-gradient(70% 60% at 50% 100%, rgba(46,196,255,0.35) 0%, rgba(46,196,255,0) 60%)",
       },
       keyframes: {
         float: {
