@@ -1,97 +1,45 @@
 "use client";
-
+import { useState } from "react";
 import { motion } from "framer-motion";
-import {
-  Pill,
-  Baby,
-  Droplets,
-  SprayCan,
-  Stethoscope,
-  Cookie,
-  ArrowUpRight,
-} from "lucide-react";
-import Reveal from "./Reveal";
-import { PRODUCT_CATEGORIES, ProductCategory } from "@/lib/data";
-
-const ICONS: Record<ProductCategory["icon"], typeof Pill> = {
-  vitamins: Pill,
-  baby: Baby,
-  skin: Droplets,
-  perfume: SprayCan,
-  otc: Stethoscope,
-  snacks: Cookie,
-};
-
-const TINTS: Record<ProductCategory["tint"], string> = {
-  green: "from-brand-green/25 to-brand-green/0",
-  aqua: "from-brand-aqua/25 to-brand-aqua/0",
-  red: "from-brand-red/20 to-brand-red/0",
-};
-
-const ICON_TINTS: Record<ProductCategory["tint"], string> = {
-  green: "text-brand-green-dark dark:text-brand-green",
-  aqua: "text-brand-aqua-dark dark:text-brand-aqua",
-  red: "text-brand-red",
-};
+import { PRODUCT_CATEGORIES, BRAND } from "@/lib/data";
 
 export default function Products() {
+  const [selected, setSelected] = useState<number | null>(null);
   return (
-    <section id="products" className="relative bg-surface-soft py-24 dark:bg-midnight">
-      <div className="mx-auto max-w-6xl px-5 sm:px-8">
-        <Reveal className="mx-auto max-w-xl text-center">
-          <span className="section-badge">In-Store &amp; Online</span>
-          <h2 className="mt-5 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
-            Shop wellness, made simple
-          </h2>
-          <p className="mt-4 text-ink/60 dark:text-white/60">
-            From everyday vitamins to baby essentials, browse what we carry
-            by category.
-          </p>
-        </Reveal>
-
-        <div className="mt-14 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {PRODUCT_CATEGORIES.map((cat, i) => {
-            const Icon = ICONS[cat.icon];
-            return (
-              <Reveal key={cat.name} delay={i * 0.06}>
-                <motion.div
-                  whileHover={{ y: -8, scale: 1.015 }}
-                  transition={{ duration: 0.35, ease: "easeOut" }}
-                  className="group relative h-56 overflow-hidden rounded-4xl border border-ink/5 bg-white shadow-card dark:border-white/10 dark:bg-midnight-card"
-                >
-                  <div
-                    className={`absolute inset-0 bg-gradient-to-br ${TINTS[cat.tint]} opacity-80 transition-opacity duration-300 group-hover:opacity-100`}
-                  />
-                  <div
-                    aria-hidden
-                    className="absolute -right-6 -top-6 h-28 w-28 rounded-full bg-white/40 blur-2xl transition-transform duration-500 group-hover:scale-125 dark:bg-white/5"
-                  />
-                  <div className="relative flex h-full flex-col justify-between p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/80 shadow-soft backdrop-blur-md dark:bg-white/10">
-                        <Icon className={`h-6 w-6 ${ICON_TINTS[cat.tint]}`} />
-                      </div>
-                      <motion.div
-                        initial={{ opacity: 0, x: -6 }}
-                        whileHover={{ opacity: 1, x: 0 }}
-                        className="flex h-9 w-9 items-center justify-center rounded-full bg-white/80 opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:bg-white/10"
-                      >
-                        <ArrowUpRight className="h-4 w-4" />
-                      </motion.div>
-                    </div>
-                    <div>
-                      <h3 className="font-display text-xl font-bold">
-                        {cat.name}
-                      </h3>
-                      <p className="mt-1.5 text-sm text-ink/60 dark:text-white/60">
-                        {cat.blurb}
-                      </p>
-                    </div>
+    <section id="products" className="bg-white py-20">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="mb-12 text-center">
+          <span className="inline-block rounded-full bg-blue-100 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-blue-700">Más de 800 productos</span>
+          <h2 className="mt-4 font-display text-3xl font-extrabold text-gray-900 sm:text-4xl">Nuestros Productos</h2>
+          <p className="mt-3 text-gray-500 max-w-xl mx-auto">Desde medicamentos hasta snacks, grocery y juguetes. Todo en un solo lugar.</p>
+        </div>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          {PRODUCT_CATEGORIES.map((cat, i) => (
+            <motion.div key={cat.name} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }} whileHover={{ y: -6, scale: 1.02 }} onClick={() => setSelected(selected === i ? null : i)} className={`group relative cursor-pointer overflow-hidden rounded-3xl border bg-gradient-to-br ${cat.gradient} ${cat.border} p-5 shadow-sm hover:shadow-xl transition-all duration-300`}>
+              <div className="flex flex-col items-center text-center">
+                <div className="mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-md text-3xl group-hover:scale-110 transition-transform duration-300">{cat.emoji}</div>
+                <h3 className="font-bold text-gray-900 text-sm leading-tight">{cat.name}</h3>
+                <p className="mt-1 text-xs text-gray-500 leading-snug">{cat.desc}</p>
+              </div>
+              {selected === i && (
+                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mt-4 border-t border-white/60 pt-3">
+                  <p className="mb-2 text-xs font-bold text-gray-600 uppercase tracking-wide">Marcas disponibles:</p>
+                  <div className="flex flex-wrap gap-1">
+                    {cat.items.map((item) => (<span key={item} className={`rounded-full ${cat.badge} px-2 py-0.5 text-[10px] font-semibold text-white`}>{item}</span>))}
                   </div>
+                  <a href={BRAND.whatsappText} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-full bg-[#25D366] py-2 text-xs font-bold text-white hover:bg-[#1da851] transition-colors">Ordenar por WhatsApp</a>
                 </motion.div>
-              </Reveal>
-            );
-          })}
+              )}
+            </motion.div>
+          ))}
+        </div>
+        <div className="mt-12 flex flex-col items-center gap-4 rounded-3xl border border-green-100 bg-green-50 p-8 text-center sm:flex-row sm:text-left">
+          <div className="text-5xl">🛍️</div>
+          <div className="flex-1">
+            <h3 className="font-bold text-gray-900 text-lg">¿No encuentras lo que buscas?</h3>
+            <p className="mt-1 text-sm text-gray-600">Escríbenos por WhatsApp y verificamos disponibilidad. Tenemos más de 800 productos.</p>
+          </div>
+          <a href={BRAND.whatsappText} target="_blank" rel="noreferrer" className="flex shrink-0 items-center gap-2 rounded-full bg-[#25D366] px-6 py-3 text-sm font-bold text-white hover:bg-[#1da851] transition-colors shadow-lg">Consultar disponibilidad</a>
         </div>
       </div>
     </section>
