@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getSupabaseClient } from "@/lib/supabase";
+import AddToCartButton from "@/components/AddToCartButton";
 
 type Props = {
   params: Promise<{
@@ -55,9 +56,7 @@ export default async function CategoriaPage({ params }: Props) {
   const { categoria } = await params;
   const supabase = getSupabaseClient();
 
-  if (!supabase) {
-    return notFound();
-  }
+  if (!supabase) return notFound();
 
   const { data: categoryData } = await supabase
     .from("categories")
@@ -66,9 +65,7 @@ export default async function CategoriaPage({ params }: Props) {
     .eq("is_active", true)
     .maybeSingle();
 
-  if (!categoryData) {
-    return notFound();
-  }
+  if (!categoryData) return notFound();
 
   const category = categoryData as Category;
 
@@ -89,7 +86,7 @@ export default async function CategoriaPage({ params }: Props) {
   return (
     <div className="min-h-screen bg-white">
       <header className="sticky top-0 z-50 border-b border-gray-100 bg-white px-4 py-4 shadow-sm">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
           <Link href="/">
             <Image
               src="/logo.png"
@@ -99,21 +96,21 @@ export default async function CategoriaPage({ params }: Props) {
               className="h-11 w-auto object-contain"
             />
           </Link>
-          <Link
-            href="/#products"
-            className="text-sm font-semibold text-green-600 hover:underline"
-          >
-            Volver a productos
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link href="/#products" className="text-sm font-semibold text-green-600 hover:underline">
+              Volver a productos
+            </Link>
+            <Link href="/cart" className="rounded-full bg-green-600 px-4 py-2 text-sm font-bold text-white hover:bg-green-700">
+              Ver carrito
+            </Link>
+          </div>
         </div>
       </header>
 
       <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
         <div className="mb-10">
           <span className="text-4xl">{emoji}</span>
-          <h1 className="mt-3 text-2xl font-extrabold text-gray-900 sm:text-3xl">
-            {category.name}
-          </h1>
+          <h1 className="mt-3 text-2xl font-extrabold text-gray-900 sm:text-3xl">{category.name}</h1>
           <p className="mt-1 text-gray-500">
             {category.description ?? "Productos disponibles en tienda."}
           </p>
@@ -122,60 +119,48 @@ export default async function CategoriaPage({ params }: Props) {
         {products.length > 0 ? (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {products.map((product) => (
-              <article
-                key={product.id}
-                className="flex flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-lg"
-              >
+              <article key={product.id} className="flex flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-lg">
                 <div className="mb-4 flex aspect-square items-center justify-center overflow-hidden rounded-2xl bg-gray-50">
                   {product.image_url ? (
-                    <img
-                      src={product.image_url}
-                      alt={product.name}
-                      className="h-full w-full object-contain p-3"
-                    />
+                    <img src={product.image_url} alt={product.name} className="h-full w-full object-contain p-3" />
                   ) : (
                     <span className="text-5xl">{emoji}</span>
                   )}
                 </div>
 
                 {product.brand && (
-                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                    {product.brand}
-                  </p>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">{product.brand}</p>
                 )}
 
-                <h2 className="mt-1 text-sm font-bold text-gray-900">
-                  {product.name}
-                </h2>
+                <h2 className="mt-1 text-sm font-bold text-gray-900">{product.name}</h2>
 
                 {product.description && (
-                  <p className="mt-1 line-clamp-2 text-xs text-gray-500">
-                    {product.description}
-                  </p>
+                  <p className="mt-1 line-clamp-2 text-xs text-gray-500">{product.description}</p>
                 )}
 
                 <div className="mt-auto pt-4">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-lg font-extrabold text-green-700">
-                      {money(Number(product.price))}
-                    </span>
-                    {product.compare_at_price &&
-                      Number(product.compare_at_price) > Number(product.price) && (
-                        <span className="text-xs text-gray-400 line-through">
-                          {money(Number(product.compare_at_price))}
-                        </span>
-                      )}
+                    <span className="text-lg font-extrabold text-green-700">{money(Number(product.price))}</span>
+                    {product.compare_at_price && Number(product.compare_at_price) > Number(product.price) && (
+                      <span className="text-xs text-gray-400 line-through">{money(Number(product.compare_at_price))}</span>
+                    )}
                   </div>
 
+                  <AddToCartButton
+                    product={{
+                      id: product.id,
+                      name: product.name,
+                      slug: product.slug,
+                      price: Number(product.price),
+                      image_url: product.image_url,
+                    }}
+                  />
+
                   <a
-                    href={
-                      wa +
-                      "%20-%20" +
-                      encodeURIComponent(product.name)
-                    }
+                    href={wa + "%20-%20" + encodeURIComponent(product.name)}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-3 flex w-full items-center justify-center rounded-full bg-[#25D366] py-2 text-xs font-bold text-white hover:bg-[#1da851]"
+                    className="mt-2 flex w-full items-center justify-center rounded-full border border-[#25D366] py-2 text-xs font-bold text-[#1da851] hover:bg-green-50"
                   >
                     Consultar
                   </a>
@@ -186,9 +171,7 @@ export default async function CategoriaPage({ params }: Props) {
         ) : (
           <div className="rounded-3xl border border-blue-100 bg-blue-50 p-10 text-center">
             <div className="text-5xl">📦</div>
-            <h2 className="mt-4 text-xl font-bold text-gray-900">
-              Estamos cargando esta categoría
-            </h2>
+            <h2 className="mt-4 text-xl font-bold text-gray-900">Estamos cargando esta categoría</h2>
             <p className="mx-auto mt-2 max-w-lg text-sm text-gray-600">
               Los productos con precio e imagen aparecerán aquí tan pronto los añadamos al catálogo.
             </p>
@@ -196,18 +179,9 @@ export default async function CategoriaPage({ params }: Props) {
         )}
 
         <div className="mt-12 rounded-3xl border border-green-100 bg-green-50 p-8 text-center">
-          <h3 className="mb-2 text-lg font-bold text-gray-900">
-            ¿Buscas algo específico?
-          </h3>
-          <p className="mb-5 text-sm text-gray-600">
-            Escríbenos y verificamos disponibilidad en tienda.
-          </p>
-          <a
-            href={wa}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex rounded-full bg-[#25D366] px-8 py-3 text-sm font-bold text-white hover:bg-[#1da851]"
-          >
+          <h3 className="mb-2 text-lg font-bold text-gray-900">¿Buscas algo específico?</h3>
+          <p className="mb-5 text-sm text-gray-600">Escríbenos y verificamos disponibilidad en tienda.</p>
+          <a href={wa} target="_blank" rel="noreferrer" className="inline-flex rounded-full bg-[#25D366] px-8 py-3 text-sm font-bold text-white hover:bg-[#1da851]">
             Chatear por WhatsApp
           </a>
         </div>
