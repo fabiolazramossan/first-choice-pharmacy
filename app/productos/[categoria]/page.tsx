@@ -1,16 +1,7 @@
-import { PRODUCT_CATEGORIES } from "@/lib/data";
-import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-
-const slugify = (s: string) =>
-  s.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-");
-
-export function generateStaticParams() {
-  return PRODUCT_CATEGORIES.map((cat) => ({
-    categoria: slugify(cat.name),
-  }));
-}
+import { notFound } from "next/navigation";
+import { getSupabaseClient } from "@/lib/supabase";
 
 type Props = {
   params: Promise<{
@@ -18,20 +9,82 @@ type Props = {
   }>;
 };
 
+type Category = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+};
+
+type Product = {
+  id: string;
+  name: string;
+  slug: string;
+  brand: string | null;
+  description: string | null;
+  price: number;
+  compare_at_price: number | null;
+  image_url: string | null;
+};
+
+const categoryEmoji: Record<string, string> = {
+  "medicamentos-otc": "💊",
+  "vitaminas-suplementos": "🌿",
+  "primeros-auxilios": "🩹",
+  "equipo-medico": "🏥",
+  "dolor-muscular": "💪",
+  "salud-ocular-nasal": "👁️",
+  "bebe-mama": "👶",
+  "vitaminas-infantiles": "🧸",
+  "productos-naturales": "🌱",
+  "grocery-alimentos": "🛒",
+  "leches-bebidas": "🥛",
+  "snacks-dulces": "🍿",
+  "refrescos-agua": "🥤",
+  "juguetes-regalos": "🎁",
+};
+
+function money(value: number) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(value);
+}
+
 export default async function CategoriaPage({ params }: Props) {
   const { categoria } = await params;
+  const supabase = getSupabaseClient();
 
-  const cat = PRODUCT_CATEGORIES.find(
-    (c) => slugify(c.name) === categoria
-  );
+  if (!supabase) {
+    return notFound();
+  }
 
-  if (!cat) return notFound();
+  const { data: categoryData } = await supabase
+    .from("categories")
+    .select("id,name,slug,description")
+    .eq("slug", categoria)
+    .eq("is_active", true)
+    .maybeSingle();
 
+  if (!categoryData) {
+    return notFound();
+  }
+
+  const category = categoryData as Category;
+
+  const { data: productData } = await supabase
+    .from("products")
+    .select("id,name,slug,brand,description,price,compare_at_price,image_url")
+    .eq("category_id", category.id)
+    .eq("is_active", true)
+    .eq("requires_prescription", false)
+    .order("name", { ascending: true });
+
+  const products = (productData ?? []) as Product[];
+  const emoji = categoryEmoji[category.slug] ?? "🛍️";
   const wa =
     "https://wa.me/17877516646?text=" +
-    encodeURIComponent(
-      "Hola, quisiera información sobre " + cat.name
-    );
+    encodeURIComponent(`Hola, quisiera información sobre ${category.name}`);
 
   return (
     <div className="min-h-screen bg-white">
@@ -46,7 +99,6 @@ export default async function CategoriaPage({ params }: Props) {
               className="h-11 w-auto object-contain"
             />
           </Link>
-
           <Link
             href="/#products"
             className="text-sm font-semibold text-green-600 hover:underline"
@@ -58,62 +110,98 @@ export default async function CategoriaPage({ params }: Props) {
 
       <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
         <div className="mb-10">
-          <span className="text-4xl">{cat.emoji}</span>
-
+          <span className="text-4xl">{emoji}</span>
           <h1 className="mt-3 text-2xl font-extrabold text-gray-900 sm:text-3xl">
-            {cat.name}
+            {category.name}
           </h1>
-
           <p className="mt-1 text-gray-500">
-            {cat.desc}
+            {category.description ?? "Productos disponibles en tienda."}
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {cat.items.map((item) => (
-            <div
-              key={item}
-              className={
-                "flex flex-col items-center rounded-3xl border bg-gradient-to-br " +
-                cat.gradient +
-                " " +
-                cat.border +
-                " p-5 shadow-sm transition-all hover:shadow-lg"
-              }
-            >
-              <div className="mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-3xl shadow-md">
-                {cat.emoji}
-              </div>
-
-              <h3 className="mb-3 text-center text-sm font-bold text-gray-900">
-                {item}
-              </h3>
-
-              <a
-                href={
-                  wa +
-                  "%20-%20" +
-                  encodeURIComponent(item)
-                }
-                target="_blank"
-                rel="noreferrer"
-                className="flex w-full items-center justify-center rounded-full bg-[#25D366] py-2 text-xs font-bold text-white hover:bg-[#1da851]"
+        {products.length > 0 ? (
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            {products.map((product) => (
+              <article
+                key={product.id}
+                className="flex flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-lg"
               >
-                Consultar
-              </a>
-            </div>
-          ))}
-        </div>
+                <div className="mb-4 flex aspect-square items-center justify-center overflow-hidden rounded-2xl bg-gray-50">
+                  {product.image_url ? (
+                    <img
+                      src={product.image_url}
+                      alt={product.name}
+                      className="h-full w-full object-contain p-3"
+                    />
+                  ) : (
+                    <span className="text-5xl">{emoji}</span>
+                  )}
+                </div>
+
+                {product.brand && (
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                    {product.brand}
+                  </p>
+                )}
+
+                <h2 className="mt-1 text-sm font-bold text-gray-900">
+                  {product.name}
+                </h2>
+
+                {product.description && (
+                  <p className="mt-1 line-clamp-2 text-xs text-gray-500">
+                    {product.description}
+                  </p>
+                )}
+
+                <div className="mt-auto pt-4">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-lg font-extrabold text-green-700">
+                      {money(Number(product.price))}
+                    </span>
+                    {product.compare_at_price &&
+                      Number(product.compare_at_price) > Number(product.price) && (
+                        <span className="text-xs text-gray-400 line-through">
+                          {money(Number(product.compare_at_price))}
+                        </span>
+                      )}
+                  </div>
+
+                  <a
+                    href={
+                      wa +
+                      "%20-%20" +
+                      encodeURIComponent(product.name)
+                    }
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-3 flex w-full items-center justify-center rounded-full bg-[#25D366] py-2 text-xs font-bold text-white hover:bg-[#1da851]"
+                  >
+                    Consultar
+                  </a>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-3xl border border-blue-100 bg-blue-50 p-10 text-center">
+            <div className="text-5xl">📦</div>
+            <h2 className="mt-4 text-xl font-bold text-gray-900">
+              Estamos cargando esta categoría
+            </h2>
+            <p className="mx-auto mt-2 max-w-lg text-sm text-gray-600">
+              Los productos con precio e imagen aparecerán aquí tan pronto los añadamos al catálogo.
+            </p>
+          </div>
+        )}
 
         <div className="mt-12 rounded-3xl border border-green-100 bg-green-50 p-8 text-center">
           <h3 className="mb-2 text-lg font-bold text-gray-900">
             ¿Buscas algo específico?
           </h3>
-
           <p className="mb-5 text-sm text-gray-600">
             Escríbenos y verificamos disponibilidad en tienda.
           </p>
-
           <a
             href={wa}
             target="_blank"
