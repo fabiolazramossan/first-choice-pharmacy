@@ -28,7 +28,7 @@ export default function About() {
                   {item.title}
                 </h3>
                 <p className="mt-2 text-sm leading-relaxed text-ink/60 dark:text-white/60">
-                  {item.description}
+                  {item.desc}
                 </p>
               </motion.div>
             </Reveal>

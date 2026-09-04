@@ -60,7 +60,7 @@ export default function Products() {
               Escríbenos y verificamos disponibilidad. Más de 800 productos en tienda.
             </p>
           </div>
-          
+          <a
             href={BRAND.whatsappText}
             target="_blank"
             rel="noreferrer"
