@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { BRAND } from "@/lib/data";
-import { getSupabaseClient } from "@/lib/supabase";
 
 type Category = {
   id: string;
@@ -41,32 +40,25 @@ export default function Products() {
     let mounted = true;
 
     async function loadCategories() {
-      const supabase = getSupabaseClient();
+      try {
+        const response = await fetch("/api/catalog/categories", {
+          cache: "no-store",
+        });
 
-      if (!supabase) {
-        if (mounted) {
-          setError(true);
-          setLoading(false);
+        if (!response.ok) {
+          throw new Error(`Catalog request failed: ${response.status}`);
         }
-        return;
+
+        const payload = (await response.json()) as { categories?: Category[] };
+
+        if (!mounted) return;
+        setCategories(payload.categories ?? []);
+      } catch (err) {
+        console.error("Could not load categories", err);
+        if (mounted) setError(true);
+      } finally {
+        if (mounted) setLoading(false);
       }
-
-      const { data, error: queryError } = await supabase
-        .from("categories")
-        .select("id,name,slug,description,sort_order")
-        .eq("is_active", true)
-        .order("sort_order", { ascending: true });
-
-      if (!mounted) return;
-
-      if (queryError) {
-        console.error("Could not load categories", queryError);
-        setError(true);
-      } else {
-        setCategories((data ?? []) as Category[]);
-      }
-
-      setLoading(false);
     }
 
     loadCategories();
