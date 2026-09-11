@@ -19,7 +19,6 @@ export async function GET() {
       {
         headers: {
           apikey: key,
-          Authorization: `Bearer ${key}`,
         },
         cache: "no-store",
       }
@@ -29,7 +28,7 @@ export async function GET() {
       const details = await response.text();
       console.error("Supabase categories error:", response.status, details);
       return NextResponse.json(
-        { error: "Could not load categories." },
+        { error: "Could not load categories.", status: response.status },
         { status: 502 }
       );
     }
