@@ -40,33 +40,19 @@ export default function Products() {
     let mounted = true;
 
     async function loadCategories() {
-      const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-
-      if (!url || !key) {
-        if (mounted) {
-          setError(true);
-          setLoading(false);
-        }
-        return;
-      }
-
       try {
-        const response = await fetch(
-          `${url}/rest/v1/categories?select=id,name,slug,description,sort_order&is_active=eq.true&order=sort_order.asc`,
-          {
-            headers: { apikey: key },
-            cache: "no-store",
-          }
-        );
+        const response = await fetch("/api/catalog/categories", {
+          cache: "no-store",
+        });
 
         if (!response.ok) {
-          throw new Error(`Supabase catalog request failed: ${response.status}`);
+          throw new Error(`Catalog request failed: ${response.status}`);
         }
 
-        const data = (await response.json()) as Category[];
+        const payload = (await response.json()) as { categories?: Category[] };
+
         if (!mounted) return;
-        setCategories(data);
+        setCategories(payload.categories ?? []);
       } catch (err) {
         console.error("Could not load categories", err);
         if (mounted) setError(true);
