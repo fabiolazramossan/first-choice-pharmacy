@@ -103,8 +103,10 @@ export default function Products() {
         {!loading && !error && (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {categories.map((cat, i) => (
-              <motion.div
+              <motion.button
                 key={cat.id}
+                type="button"
+                aria-label={`Ver productos de ${cat.name}`}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -127,7 +129,7 @@ export default function Products() {
                     Ver productos
                   </span>
                 </div>
-              </motion.div>
+              </motion.button>
             ))}
           </div>
         )}
