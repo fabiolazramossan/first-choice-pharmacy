@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
+import { getSupabaseClient } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  const supabase = getSupabaseClient();
 
-  if (!url || !key) {
+  if (!supabase) {
     return NextResponse.json(
       { error: "Catalog configuration is missing." },
       { status: 503 }
@@ -14,29 +14,26 @@ export async function GET() {
   }
 
   try {
-    const response = await fetch(
-      `${url}/rest/v1/categories?select=id,name,slug,description,sort_order&is_active=eq.true&order=sort_order.asc`,
-      {
-        headers: {
-          apikey: key,
-        },
-        cache: "no-store",
-      }
-    );
+    const { data: categories, error } = await supabase
+      .from("categories")
+      .select("id,name,slug,description,sort_order")
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true });
 
-    if (!response.ok) {
-      const details = await response.text();
-      console.error("Supabase categories error:", response.status, details);
+    if (error) {
+      console.error("Supabase categories error:", error.code);
       return NextResponse.json(
-        { error: "Could not load categories.", status: response.status },
+        { error: "Could not load categories." },
         { status: 502 }
       );
     }
 
-    const categories = await response.json();
-    return NextResponse.json({ categories });
+    return NextResponse.json(
+      { categories: categories ?? [] },
+      { headers: { "Cache-Control": "no-store" } }
+    );
   } catch (error) {
-    console.error("Catalog categories request failed:", error);
+    console.error("Catalog categories request failed.");
     return NextResponse.json(
       { error: "Could not connect to catalog." },
       { status: 502 }

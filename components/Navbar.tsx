@@ -2,14 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Phone } from "lucide-react";
+import Link from "next/link";
+import { Menu, X, Phone, ShoppingBag } from "lucide-react";
 import Logo from "./Logo";
 import ThemeToggle from "./ThemeToggle";
 import { BRAND, NAV_LINKS } from "@/lib/data";
+import { useCart } from "@/components/CartProvider";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const { itemCount } = useCart();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16);
@@ -45,16 +48,40 @@ export default function Navbar() {
 
         <div className="hidden items-center gap-3 lg:flex">
           <ThemeToggle />
+          <Link
+            href="/cart"
+            className="relative flex h-10 items-center gap-2 rounded-full border border-ink/10 bg-white/70 px-4 text-sm font-semibold text-ink/80 transition hover:border-brand-green/40 dark:border-white/15 dark:bg-white/5 dark:text-white/80"
+          >
+            <ShoppingBag className="h-4 w-4" />
+            Carrito
+            {itemCount > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-green px-1 text-[11px] text-white">
+                {itemCount}
+              </span>
+            )}
+          </Link>
           <a href={BRAND.phoneHref} className="btn-secondary !px-5 !py-2.5">
             <Phone className="h-4 w-4" />
-            Call Now
+            Llamar
           </a>
           <a href="#refill" className="btn-primary !px-5 !py-2.5">
-            Refill Prescription
+            Solicitar refill
           </a>
         </div>
 
         <div className="flex items-center gap-2 lg:hidden">
+          <Link
+            href="/cart"
+            aria-label={`Carrito con ${itemCount} artículos`}
+            className="relative flex h-10 w-10 items-center justify-center rounded-full border border-ink/10 bg-white/70 dark:border-white/15 dark:bg-white/5"
+          >
+            <ShoppingBag className="h-5 w-5" />
+            {itemCount > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-green px-1 text-[10px] font-bold text-white">
+                {itemCount}
+              </span>
+            )}
+          </Link>
           <ThemeToggle />
           <button
             aria-label={open ? "Close menu" : "Open menu"}
@@ -90,10 +117,10 @@ export default function Navbar() {
             <div className="mt-4 flex flex-col gap-3 border-t border-ink/10 pt-4 dark:border-white/10">
               <a href={BRAND.phoneHref} className="btn-secondary w-full">
                 <Phone className="h-4 w-4" />
-                Call Now
+                Llamar
               </a>
               <a href="#refill" onClick={() => setOpen(false)} className="btn-primary w-full">
-                Refill Prescription
+                Solicitar refill
               </a>
             </div>
           </motion.div>

@@ -1,48 +1,128 @@
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
+import { BRAND } from "@/lib/data";
 
 export const metadata = {
-  title: "Política de Privacidad | First Choice Pharmacy",
-  description: "Política de Privacidad de First Choice Pharmacy.",
+  title: "Privacidad del sitio web",
+  description: "Cómo First Choice Pharmacy maneja los datos enviados por este sitio web.",
 };
 
 export default function Privacidad() {
   return (
     <div className="min-h-screen bg-white">
-      <header className="border-b border-gray-100 bg-white px-4 py-4">
-        <div className="mx-auto flex max-w-4xl items-center justify-between">
-          <Link href="/"><Image src="/logo.png" alt="First Choice Pharmacy" width={140} height={46} className="h-11 w-auto object-contain" /></Link>
-          <Link href="/" className="text-sm font-semibold text-green-600 hover:underline">← Volver al inicio</Link>
-        </div>
-      </header>
+      <LegalHeader />
       <main className="mx-auto max-w-4xl px-4 py-14 sm:px-6">
         <div className="mb-10 text-center">
-          <span className="inline-block rounded-full bg-green-100 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-green-700">Legal</span>
-          <h1 className="mt-4 text-3xl font-extrabold text-gray-900">Política de Privacidad</h1>
-          <p className="mt-2 text-sm text-gray-500">Última actualización: 5 de julio de 2026</p>
+          <span className="inline-block rounded-full bg-green-100 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-green-700">
+            Privacidad
+          </span>
+          <h1 className="mt-4 text-3xl font-extrabold text-gray-900">
+            Privacidad del sitio web
+          </h1>
+          <p className="mt-2 text-sm text-gray-500">
+            Última actualización: 17 de septiembre de 2026
+          </p>
         </div>
-        <div className="space-y-8 text-gray-700 text-sm leading-relaxed">
+
+        <div className="space-y-8 text-sm leading-relaxed text-gray-700">
           <section className="rounded-2xl border border-blue-100 bg-blue-50 p-6">
-            <h2 className="text-lg font-bold text-blue-900 mb-2">Aviso de Prácticas de Privacidad (HIPAA)</h2>
-            <p className="text-blue-800">Este aviso describe cómo la información médica sobre usted puede ser usada y divulgada. Por favor léalo cuidadosamente.</p>
+            <h2 className="mb-2 text-lg font-bold text-blue-900">
+              No envíes información médica por este sitio
+            </h2>
+            <p className="text-blue-800">
+              No incluyas diagnósticos, medicamentos, números o imágenes de recetas, fecha de nacimiento ni otra información clínica en formularios o notas. Para asuntos de recetas, llama a la farmacia o visítanos.
+            </p>
           </section>
-          <section><h2 className="text-xl font-bold text-gray-900 mb-3">1. Quiénes Somos</h2><p>First Choice Pharmacy, 86 C. Georgetti, San Juan, PR 00926. Farmacia comunitaria comprometida con la protección de su información personal y de salud.</p></section>
-          <section><h2 className="text-xl font-bold text-gray-900 mb-3">2. Información que Recopilamos</h2><ul className="space-y-2 list-disc list-inside"><li>Nombre completo, fecha de nacimiento, teléfono.</li><li>Número de receta, nombre del medicamento, imagen de receta (PHI).</li><li>Datos de navegación: IP, navegador, páginas visitadas.</li></ul></section>
-          <section><h2 className="text-xl font-bold text-gray-900 mb-3">3. Cómo Usamos su Información</h2><ul className="space-y-2 list-disc list-inside"><li>Procesar solicitudes de refill.</li><li>Comunicarnos sobre el estado de su receta.</li><li>Coordinar delivery.</li><li>Cumplir requisitos legales.</li></ul></section>
-          <section><h2 className="text-xl font-bold text-gray-900 mb-3">4. HIPAA</h2><p>Su información de salud protegida solo se usa para tratamiento, pago y operaciones. <strong className="text-red-700">No vendemos ni compartimos su información con terceros.</strong></p></section>
-          <section><h2 className="text-xl font-bold text-gray-900 mb-3">5. Sus Derechos</h2><ul className="space-y-2 list-disc list-inside"><li>Acceder a su información de salud.</li><li>Solicitar correcciones.</li><li>Solicitar restricciones de uso.</li><li>Presentar quejas ante el HHS.</li></ul></section>
-          <section><h2 className="text-xl font-bold text-gray-900 mb-3">6. Seguridad</h2><ul className="space-y-2 list-disc list-inside"><li>HTTPS/SSL en todas las transmisiones.</li><li>Acceso restringido a PHI.</li><li>Revisiones periódicas de seguridad.</li></ul></section>
-          <section><h2 className="text-xl font-bold text-gray-900 mb-3">7. Contáctenos</h2><div className="rounded-2xl border border-gray-200 bg-gray-50 p-4"><p><strong>First Choice Pharmacy</strong></p><p>86 C. Georgetti, San Juan, PR 00926</p><p>Tel: 787-751-6646</p></div></section>
-          <section className="rounded-2xl border border-yellow-100 bg-yellow-50 p-6"><p className="text-yellow-800"><strong>Aviso Legal:</strong> Consulte con un abogado especializado en HIPAA en Puerto Rico para asegurar cumplimiento total.</p></section>
+
+          <Section title="1. Alcance de esta política">
+            <p>
+              Esta política explica el manejo de la información enviada mediante este sitio. No sustituye el Aviso de Prácticas de Privacidad de la farmacia relacionado con información de salud protegida; puedes solicitar ese aviso directamente en la farmacia.
+            </p>
+          </Section>
+
+          <Section title="2. Información que recopilamos">
+            <ul className="list-inside list-disc space-y-2">
+              <li>Solicitud de refill: nombre, teléfono y mensaje opcional.</li>
+              <li>Órdenes de productos sin receta: nombre, teléfono, correo opcional, productos, método de entrega y, si eliges delivery, dirección.</li>
+              <li>Datos técnicos básicos necesarios para seguridad y funcionamiento, como dirección IP, navegador, fecha y hora de la solicitud.</li>
+            </ul>
+          </Section>
+
+          <Section title="3. Cómo usamos la información">
+            <ul className="list-inside list-disc space-y-2">
+              <li>Responder a tu solicitud y comunicarnos contigo.</li>
+              <li>Confirmar disponibilidad, entrega y total de una orden.</li>
+              <li>Proteger el sitio contra fraude, abuso y ataques.</li>
+              <li>Cumplir obligaciones legales aplicables.</li>
+            </ul>
+          </Section>
+
+          <Section title="4. Proveedores de servicio">
+            <p>
+              Usamos proveedores de alojamiento, base de datos y correo para operar el sitio. Estos proveedores pueden procesar la información técnica o de contacto necesaria para prestar esos servicios. No vendemos tu información personal.
+            </p>
+          </Section>
+
+          <Section title="5. Conservación y seguridad">
+            <p>
+              Conservamos la información durante el tiempo razonablemente necesario para atender la solicitud, mantener registros comerciales y cumplir obligaciones aplicables. Utilizamos HTTPS, controles de acceso y validaciones del lado del servidor; ningún sistema en internet puede garantizar seguridad absoluta.
+            </p>
+          </Section>
+
+          <Section title="6. Tus opciones">
+            <p>
+              Puedes optar por no usar los formularios y comunicarte por teléfono o en persona. Para solicitar acceso, corrección o eliminación de información enviada por el sitio, comunícate con la farmacia. Algunas solicitudes pueden estar sujetas a requisitos legales de conservación.
+            </p>
+          </Section>
+
+          <Section title="7. Contacto">
+            <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+              <p className="font-bold text-gray-900">{BRAND.name}</p>
+              <p>{BRAND.address}</p>
+              <p>
+                Teléfono: <a className="font-semibold text-green-700" href={BRAND.phoneHref}>{BRAND.phone}</a>
+              </p>
+            </div>
+          </Section>
         </div>
       </main>
-      <footer className="border-t border-gray-100 bg-gray-50 px-4 py-8 text-center text-sm text-gray-500">
-        <p>© 2026 First Choice Pharmacy.</p>
-        <div className="mt-2 flex justify-center gap-4">
-          <Link href="/privacidad" className="hover:text-green-600">Política de Privacidad</Link>
-          <Link href="/terminos" className="hover:text-green-600">Términos de Uso</Link>
-        </div>
-      </footer>
+      <LegalFooter />
     </div>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section>
+      <h2 className="mb-3 text-xl font-bold text-gray-900">{title}</h2>
+      {children}
+    </section>
+  );
+}
+
+function LegalHeader() {
+  return (
+    <header className="border-b border-gray-100 bg-white px-4 py-4">
+      <div className="mx-auto flex max-w-4xl items-center justify-between gap-4">
+        <Link href="/">
+          <Image src="/logo.png" alt={BRAND.name} width={140} height={46} className="h-11 w-auto object-contain" />
+        </Link>
+        <Link href="/" className="text-sm font-semibold text-green-700 hover:underline">
+          ← Volver al inicio
+        </Link>
+      </div>
+    </header>
+  );
+}
+
+function LegalFooter() {
+  return (
+    <footer className="border-t border-gray-100 bg-gray-50 px-4 py-8 text-center text-sm text-gray-500">
+      <p>© 2026 {BRAND.name}.</p>
+      <div className="mt-2 flex justify-center gap-4">
+        <Link href="/privacidad" className="hover:text-green-700">Privacidad</Link>
+        <Link href="/terminos" className="hover:text-green-700">Términos</Link>
+      </div>
+    </footer>
   );
 }

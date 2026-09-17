@@ -4,7 +4,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { ShoppingCart } from "lucide-react";
 import AddToCartButton from "@/components/AddToCartButton";
+import { useCart } from "@/components/CartProvider";
 
 type Category = {
   id: string;
@@ -51,6 +53,7 @@ function money(value: number) {
 export default function CategoriaPage() {
   const params = useParams<{ categoria: string }>();
   const categoria = params?.categoria;
+  const { itemCount } = useCart();
   const [category, setCategory] = useState<Category | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,10 +63,7 @@ export default function CategoriaPage() {
     let mounted = true;
 
     async function loadCategory() {
-      const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-
-      if (!url || !key || !categoria) {
+      if (!categoria) {
         if (mounted) {
           setError(true);
           setLoading(false);
@@ -72,32 +72,22 @@ export default function CategoriaPage() {
       }
 
       try {
-        const categoryResponse = await fetch(
-          `${url}/rest/v1/categories?select=id,name,slug,description&slug=eq.${encodeURIComponent(categoria)}&is_active=eq.true&limit=1`,
-          { headers: { apikey: key }, cache: "no-store" }
+        const response = await fetch(
+          `/api/catalog/categories/${encodeURIComponent(categoria)}`,
+          { cache: "no-store" }
         );
 
-        if (!categoryResponse.ok) {
-          throw new Error(`Category request failed: ${categoryResponse.status}`);
+        if (!response.ok) {
+          throw new Error(`Category request failed: ${response.status}`);
         }
 
-        const categoryData = (await categoryResponse.json()) as Category[];
-        const found = categoryData[0];
-        if (!found) throw new Error("Category not found");
-
-        const productsResponse = await fetch(
-          `${url}/rest/v1/products?select=id,name,slug,brand,description,price,compare_at_price,image_url&category_id=eq.${found.id}&is_active=eq.true&requires_prescription=eq.false&order=name.asc`,
-          { headers: { apikey: key }, cache: "no-store" }
-        );
-
-        if (!productsResponse.ok) {
-          throw new Error(`Products request failed: ${productsResponse.status}`);
-        }
-
-        const productData = (await productsResponse.json()) as Product[];
+        const payload = (await response.json()) as {
+          category: Category;
+          products: Product[];
+        };
         if (!mounted) return;
-        setCategory(found);
-        setProducts(productData);
+        setCategory(payload.category);
+        setProducts(payload.products ?? []);
       } catch (err) {
         console.error("Could not load category products", err);
         if (mounted) setError(true);
@@ -144,8 +134,14 @@ export default function CategoriaPage() {
             <Link href="/#products" className="text-sm font-semibold text-green-600 hover:underline">
               Volver a productos
             </Link>
-            <Link href="/cart" className="rounded-full bg-green-600 px-4 py-2 text-sm font-bold text-white hover:bg-green-700">
-              Ver carrito
+            <Link href="/cart" className="relative flex items-center gap-2 rounded-full bg-green-600 px-4 py-2 text-sm font-bold text-white hover:bg-green-700">
+              <ShoppingCart className="h-4 w-4" />
+              Carrito
+              {itemCount > 0 && (
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-white px-1 text-[11px] text-green-700">
+                  {itemCount}
+                </span>
+              )}
             </Link>
           </div>
         </div>
@@ -162,9 +158,15 @@ export default function CategoriaPage() {
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {products.map((product) => (
               <article key={product.id} className="flex flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-lg">
-                <div className="mb-4 flex aspect-square items-center justify-center overflow-hidden rounded-2xl bg-gray-50">
-                  {product.image_url ? (
-                    <img src={product.image_url} alt={product.name} className="h-full w-full object-contain p-3" />
+                <div className="relative mb-4 flex aspect-square items-center justify-center overflow-hidden rounded-2xl bg-gray-50">
+                  {isTrustedProductImage(product.image_url) ? (
+                    <Image
+                      src={product.image_url!}
+                      alt={product.name}
+                      fill
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                      className="object-contain p-3"
+                    />
                   ) : (
                     <span className="text-5xl">{emoji}</span>
                   )}
@@ -226,4 +228,18 @@ export default function CategoriaPage() {
       </footer>
     </div>
   );
+}
+
+function isTrustedProductImage(value: string | null): boolean {
+  if (!value) return false;
+  try {
+    const url = new URL(value);
+    return (
+      url.protocol === "https:" &&
+      url.hostname === "vhwpotmsdmaqizkvgowl.supabase.co" &&
+      url.pathname.startsWith("/storage/v1/object/public/")
+    );
+  } catch {
+    return false;
+  }
 }

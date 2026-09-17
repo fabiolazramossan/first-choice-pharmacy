@@ -18,16 +18,17 @@ const body = Inter({
   display: "swap",
 });
 
-const siteUrl = "https://www.firstchoicepharmacypr.com";
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://first-choice-pharmacy.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "First Choice Pharmacy | Your Health, Your First Choice",
+    default: "First Choice Pharmacy | Farmacia en San Juan, Puerto Rico",
     template: "%s | First Choice Pharmacy",
   },
   description:
-    "First Choice Pharmacy is a modern community pharmacy in San Juan, Puerto Rico offering prescription refills, vaccines, WIC, delivery and wellness products.",
+    "Farmacia comunitaria en San Juan, Puerto Rico con refills, vacunas, WIC, delivery y productos de bienestar.",
   keywords: [
     "pharmacy San Juan",
     "Puerto Rico pharmacy",
@@ -37,20 +38,21 @@ export const metadata: Metadata = {
     "pharmacy delivery PR",
   ],
   openGraph: {
-    title: "First Choice Pharmacy | Your Health, Your First Choice",
+    title: "First Choice Pharmacy | Tu salud es nuestra prioridad",
     description:
-      "Fast prescriptions, vaccines, wellness products and personalized care in one place. Serving San Juan, Puerto Rico.",
+      "Refills, vacunas, WIC, delivery y productos de bienestar en San Juan, Puerto Rico.",
     url: siteUrl,
     siteName: "First Choice Pharmacy",
-    locale: "en_US",
+    locale: "es_PR",
     type: "website",
   },
   twitter: {
-    card: "summary_large_image",
-    title: "First Choice Pharmacy | Your Health, Your First Choice",
+    card: "summary",
+    title: "First Choice Pharmacy | Tu salud es nuestra prioridad",
     description:
-      "Fast prescriptions, vaccines, wellness products and personalized care in one place.",
+      "Refills, vacunas, WIC, delivery y productos de bienestar en San Juan.",
   },
+  alternates: { canonical: siteUrl },
   robots: { index: true, follow: true },
 };
 
@@ -63,7 +65,7 @@ export default function RootLayout({
     "@context": "https://schema.org",
     "@type": "Pharmacy",
     name: "First Choice Pharmacy",
-    image: `${siteUrl}/og.png`,
+    image: `${siteUrl}/logo.png`,
     telephone: "+1-787-751-6646",
     address: {
       "@type": "PostalAddress",
@@ -96,7 +98,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en" className={`${display.variable} ${body.variable}`} suppressHydrationWarning>
+    <html lang="es" className={`${display.variable} ${body.variable}`} suppressHydrationWarning>
       <head>
         <script
           type="application/ld+json"

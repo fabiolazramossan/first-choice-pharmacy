@@ -1,90 +1,56 @@
-# First Choice Pharmacy — Website
+# First Choice Pharmacy
 
-A premium, fully responsive marketing site for **First Choice Pharmacy** (San Juan, Puerto Rico), built with Next.js 15, Tailwind CSS, Framer Motion and Lucide Icons.
+Sitio web y catálogo de First Choice Pharmacy en San Juan, Puerto Rico. Está construido con Next.js 15, React 19, Tailwind CSS, Supabase y Resend.
 
-## What's included
+## Funciones disponibles
 
-- Sticky glass navbar with mobile menu, dark/light mode toggle
-- Animated hero with gradient mesh + floating pill/leaf shapes
-- Services grid (glass cards, gradient borders, hover motion)
-- Online refill form (with file upload + animated success state)
-- Products / categories grid
-- Delivery flow illustration (Customer → Pharmacy → Home)
-- "Why Choose Us" section
-- Contact section with embedded Google Map + hours + call button
-- Footer with quick links and social icons
-- Floating WhatsApp button
-- Branded loading screen, scroll-reveal animations, smooth scrolling
-- SEO metadata + JSON-LD `Pharmacy` structured data
+- Catálogo por categorías alimentado por Supabase.
+- Carrito persistente en el navegador.
+- Checkout para productos sin receta, con recogido o delivery.
+- Solicitudes de pedido enviadas a la farmacia por email.
+- Formulario de refill que pide solamente nombre, teléfono y un mensaje no clínico.
+- Enlaces de WhatsApp y llamada, SEO local, datos estructurados y diseño responsive.
+- Validación de precios y productos en el servidor; el navegador no determina el total enviado.
 
-## Getting started
+El checkout no captura tarjetas. La farmacia confirma disponibilidad, IVU, tarifa de delivery y total final antes de cobrar al recoger o recibir. Los productos cuyo nombre comienza con `[PRUEBA]` solo aparecen en previews, nunca en producción.
 
-You'll need [Node.js](https://nodejs.org) 18.18+ installed.
+## Desarrollo local
+
+Requiere Node.js 20 o posterior.
 
 ```bash
-# 1. install dependencies
-npm install
-
-# 2. run the local dev server
+npm ci
+cp .env.example .env.local
 npm run dev
 ```
 
-Then open [http://localhost:3000](http://localhost:3000) in your browser.
+Abre [http://localhost:3000](http://localhost:3000).
 
-## Project structure
+## Variables de entorno
 
-```
-app/
-  layout.tsx        — fonts, SEO metadata, theme provider, JSON-LD
-  page.tsx           — assembles all sections
-  globals.css         — design tokens & reusable utility classes
-components/
-  Navbar.tsx, Hero.tsx, Services.tsx, RefillForm.tsx,
-  Products.tsx, Delivery.tsx, About.tsx, Contact.tsx,
-  Footer.tsx, WhatsAppButton.tsx, LoadingScreen.tsx,
-  ThemeProvider.tsx, ThemeToggle.tsx, Reveal.tsx, Logo.tsx
-lib/
-  data.ts             — all editable site content (services, products,
-                         hours, nav links, address, phone)
-```
+Copia `.env.example` y configura:
 
-## Editing content
+- `NEXT_PUBLIC_SITE_URL`: URL canónica del sitio.
+- `NEXT_PUBLIC_SUPABASE_URL`: URL del proyecto Supabase.
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`: clave pública de Supabase; RLS debe permanecer activo.
+- `RESEND_API_KEY`: clave privada de Resend, solo para el servidor.
+- `PHARMACY_EMAIL`: buzón que recibe pedidos y solicitudes de refill.
+- `REFILL_FROM_EMAIL` y `ORDER_FROM_EMAIL`: remitentes verificados en Resend.
 
-Almost everything you'll want to change — phone number, address, hours,
-services, product categories, "why choose us" copy, nav links — lives in
-**`lib/data.ts`**. Edit the text there and it updates across the whole site.
+## Verificación antes de producción
 
-## Things to connect before launch
+1. Confirmar dirección, teléfono y horarios en `lib/data.ts` y `app/layout.tsx`.
+2. Cargar productos reales con precio, inventario e imagen en Supabase.
+3. Confirmar dominio y remitentes de Resend; no depender de `onboarding@resend.dev` en producción.
+4. Probar una orden y un refill con el equipo de la farmacia.
+5. Revisar la política de privacidad y el aviso de prácticas de privacidad oficial con el responsable de cumplimiento.
+6. Ejecutar `npm run build` y `npm audit --omit=dev`.
 
-1. **Refill form backend** — `components/RefillForm.tsx` currently simulates
-   a submission (no data is sent anywhere yet). Wire the `handleSubmit`
-   function to an API route, Supabase table, or email service (e.g. Resend)
-   so refill requests actually reach your team.
-2. **WhatsApp number** — confirm `BRAND.whatsappHref` in `lib/data.ts` points
-   to the right WhatsApp Business number.
-3. **Google Map** — the embed in `Contact.tsx` uses a keyless Google Maps
-   embed URL built from your address. For a more polished embed you can
-   swap in a Google Maps Embed API key.
-4. **Open Graph image** — add a real `public/og.png` (1200×630) for link
-   previews on social media; it's already referenced in `app/layout.tsx`.
-5. **Domain** — update `siteUrl` in `app/layout.tsx` once your domain is live.
+## Seguridad y privacidad
 
-## Deploying to Vercel
-
-1. Push this project to a GitHub repository.
-2. Go to [vercel.com](https://vercel.com), click **New Project**, and import
-   the repo.
-3. Vercel auto-detects Next.js — click **Deploy**.
-4. Add your custom domain under Project Settings → Domains.
-
-## Tech stack
-
-- [Next.js 15](https://nextjs.org) (App Router)
-- [React 19](https://react.dev)
-- [Tailwind CSS](https://tailwindcss.com)
-- [Framer Motion](https://www.framer.com/motion/)
-- [Lucide Icons](https://lucide.dev)
-
----
+- Las rutas de pedido y refill aplican validación, límites básicos, honeypot y comprobación de origen.
+- No se solicitan números de receta, diagnósticos ni documentos médicos en la web.
+- Supabase usa una clave pública con Row Level Security; nunca se debe exponer una service-role key en el navegador.
+- Los datos del carrito se consideran no confiables y se vuelven a validar contra Supabase en el servidor.
 
 © 2026 First Choice Pharmacy

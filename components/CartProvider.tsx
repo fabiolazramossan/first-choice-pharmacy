@@ -1,6 +1,13 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 export type CartItem = {
   id: string;
@@ -23,6 +30,40 @@ type CartContextValue = {
 
 const CartContext = createContext<CartContextValue | null>(null);
 const STORAGE_KEY = "first-choice-pharmacy-cart";
+const MAX_QUANTITY = 10;
+
+function isSavedCartItem(value: unknown): value is CartItem {
+  if (!value || typeof value !== "object") return false;
+  const item = value as Partial<CartItem>;
+  return (
+    typeof item.id === "string" &&
+    typeof item.name === "string" &&
+    typeof item.slug === "string" &&
+    typeof item.price === "number" &&
+    Number.isFinite(item.price) &&
+    item.price >= 0 &&
+    typeof item.quantity === "number" &&
+    Number.isInteger(item.quantity) &&
+    item.quantity >= 1
+  );
+}
+
+function safeProductImage(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  try {
+    const url = new URL(value);
+    if (
+      url.protocol === "https:" &&
+      url.hostname === "vhwpotmsdmaqizkvgowl.supabase.co" &&
+      url.pathname.startsWith("/storage/v1/object/public/")
+    ) {
+      return value;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
@@ -31,7 +72,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) setItems(JSON.parse(saved));
+      const parsed: unknown = saved ? JSON.parse(saved) : [];
+      if (Array.isArray(parsed)) {
+        setItems(
+          parsed
+            .filter(isSavedCartItem)
+            .slice(0, 25)
+            .map((item) => ({
+              ...item,
+              image_url: safeProductImage(item.image_url),
+              quantity: Math.min(item.quantity, MAX_QUANTITY),
+            }))
+        );
+      }
     } catch {
       localStorage.removeItem(STORAGE_KEY);
     } finally {
@@ -43,33 +96,38 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (hydrated) localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   }, [items, hydrated]);
 
-  const addItem = (item: Omit<CartItem, "quantity">) => {
+  const addItem = useCallback((item: Omit<CartItem, "quantity">) => {
+    const safeItem = { ...item, image_url: safeProductImage(item.image_url) };
     setItems((current) => {
-      const existing = current.find((x) => x.id === item.id);
+      const existing = current.find((x) => x.id === safeItem.id);
       if (existing) {
         return current.map((x) =>
-          x.id === item.id ? { ...x, quantity: x.quantity + 1 } : x
+          x.id === safeItem.id
+            ? { ...x, quantity: Math.min(x.quantity + 1, MAX_QUANTITY) }
+            : x
         );
       }
-      return [...current, { ...item, quantity: 1 }];
+      return [...current, { ...safeItem, quantity: 1 }];
     });
-  };
+  }, []);
 
-  const updateQuantity = (id: string, quantity: number) => {
+  const updateQuantity = useCallback((id: string, quantity: number) => {
     if (quantity <= 0) {
       setItems((current) => current.filter((x) => x.id !== id));
       return;
     }
     setItems((current) =>
-      current.map((x) => (x.id === id ? { ...x, quantity } : x))
+      current.map((x) =>
+        x.id === id ? { ...x, quantity: Math.min(quantity, MAX_QUANTITY) } : x
+      )
     );
-  };
+  }, []);
 
-  const removeItem = (id: string) => {
+  const removeItem = useCallback((id: string) => {
     setItems((current) => current.filter((x) => x.id !== id));
-  };
+  }, []);
 
-  const clearCart = () => setItems([]);
+  const clearCart = useCallback(() => setItems([]), []);
 
   const value = useMemo(
     () => ({
@@ -81,7 +139,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       removeItem,
       clearCart,
     }),
-    [items]
+    [addItem, clearCart, items, removeItem, updateQuantity]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import Image from "next/image";
+import { ArrowRight, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { useCart } from "@/components/CartProvider";
 
 function money(value: number) {
@@ -43,7 +44,13 @@ export default function CartPage() {
                 <article key={item.id} className="flex gap-4 rounded-3xl border border-gray-200 bg-white p-4 shadow-sm">
                   <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gray-50">
                     {item.image_url ? (
-                      <img src={item.image_url} alt={item.name} className="h-full w-full object-contain p-2" />
+                      <Image
+                        src={item.image_url}
+                        alt={item.name}
+                        width={96}
+                        height={96}
+                        className="h-full w-full object-contain p-2"
+                      />
                     ) : (
                       <ShoppingBag className="h-8 w-8 text-gray-300" />
                     )}
@@ -83,16 +90,18 @@ export default function CartPage() {
               <h2 className="text-lg font-extrabold text-gray-900">Resumen</h2>
               <div className="mt-5 space-y-3 text-sm">
                 <div className="flex justify-between text-gray-600"><span>Subtotal</span><span>{money(subtotal)}</span></div>
-                <div className="flex justify-between text-gray-500"><span>IVU / impuestos</span><span>Se calculará al pagar</span></div>
-                <div className="flex justify-between text-gray-500"><span>Delivery</span><span>Se calculará al pagar</span></div>
+                <div className="flex justify-between gap-4 text-gray-500"><span>IVU y cargos aplicables</span><span className="text-right">Se confirman con la farmacia</span></div>
+                <div className="flex justify-between gap-4 text-gray-500"><span>Delivery</span><span className="text-right">Sujeto a área y tarifa</span></div>
               </div>
               <div className="my-5 border-t border-gray-100" />
               <div className="flex justify-between text-lg font-extrabold text-gray-900"><span>Total estimado</span><span>{money(subtotal)}</span></div>
 
-              <button type="button" disabled className="mt-6 w-full cursor-not-allowed rounded-full bg-gray-300 py-3.5 text-sm font-bold text-white">
-                Checkout próximamente
-              </button>
-              <p className="mt-3 text-center text-xs text-gray-400">El próximo paso conectará Stripe y pickup/delivery.</p>
+              <Link href="/checkout" className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-green-600 py-3.5 text-sm font-bold text-white hover:bg-green-700">
+                Continuar la orden <ArrowRight className="h-4 w-4" />
+              </Link>
+              <p className="mt-3 text-center text-xs leading-relaxed text-gray-500">
+                No cobramos tu tarjeta en esta etapa. La farmacia confirma disponibilidad y el total antes del pago.
+              </p>
             </aside>
           </div>
         )}

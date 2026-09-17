@@ -6,5 +6,11 @@ export function getSupabaseClient() {
 
   if (!url || !key) return null;
 
-  return createClient(url, key);
+  return createClient(url, key, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+  });
 }

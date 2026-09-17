@@ -9,7 +9,13 @@ type Status = "idle" | "submitting" | "success" | "error";
 
 export default function RefillForm() {
   const [status, setStatus] = useState<Status>("idle");
-  const [form, setForm] = useState({ nombre: "", telefono: "", mensaje: "" });
+  const [startedAt, setStartedAt] = useState(() => Date.now());
+  const [form, setForm] = useState({
+    nombre: "",
+    telefono: "",
+    mensaje: "",
+    website: "",
+  });
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -22,7 +28,7 @@ export default function RefillForm() {
       const res = await fetch("/api/refill", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, startedAt }),
       });
       if (!res.ok) throw new Error("Error");
       setStatus("success");
@@ -33,7 +39,8 @@ export default function RefillForm() {
 
   const reset = () => {
     setStatus("idle");
-    setForm({ nombre: "", telefono: "", mensaje: "" });
+    setStartedAt(Date.now());
+    setForm({ nombre: "", telefono: "", mensaje: "", website: "" });
   };
 
   return (
@@ -182,6 +189,19 @@ export default function RefillForm() {
                     <p className="mt-1 text-xs text-gray-400">
                       No incluyas números de receta ni información médica.
                     </p>
+                  </div>
+
+                  <div className="absolute -left-[9999px]" aria-hidden="true">
+                    <label>
+                      Sitio web
+                      <input
+                        tabIndex={-1}
+                        autoComplete="off"
+                        name="website"
+                        value={form.website}
+                        onChange={handleChange}
+                      />
+                    </label>
                   </div>
 
                   {status === "error" && (

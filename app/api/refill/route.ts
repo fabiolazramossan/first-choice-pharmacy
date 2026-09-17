@@ -1,5 +1,13 @@
 import { Resend } from "resend";
 import { NextResponse } from "next/server";
+import {
+  cleanText,
+  escapeHtml,
+  exceedsBodyLimit,
+  getClientIp,
+  isTrustedBrowserRequest,
+  isValidPhone,
+} from "@/lib/server-security";
 
 const requests = new Map<string, { count: number; resetAt: number }>();
 
@@ -26,25 +34,15 @@ function checkRateLimit(ip: string): boolean {
   return true;
 }
 
-function sanitize(input: unknown): string {
-  return String(input ?? "")
-    .replace(/[<>]/g, "")
-    .replace(/javascript:/gi, "")
-    .replace(/on\w+=/gi, "")
-    .trim()
-    .slice(0, 200);
-}
-
-function escapeHtml(input: string): string {
-  return input
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
 export async function POST(request: Request) {
+  if (!isTrustedBrowserRequest(request)) {
+    return NextResponse.json({ error: "Solicitud no permitida." }, { status: 403 });
+  }
+
+  if (exceedsBodyLimit(request, 8_000)) {
+    return NextResponse.json({ error: "Solicitud demasiado grande." }, { status: 413 });
+  }
+
   try {
     const resendApiKey = process.env.RESEND_API_KEY;
 
@@ -63,11 +61,7 @@ export async function POST(request: Request) {
 
     const resend = new Resend(resendApiKey);
 
-    const ip =
-      request.headers
-        .get("x-forwarded-for")
-        ?.split(",")[0]
-        ?.trim() || "unknown";
+    const ip = getClientIp(request);
 
     if (!checkRateLimit(ip)) {
       return NextResponse.json(
@@ -82,9 +76,26 @@ export async function POST(request: Request) {
 
     const body = await request.json();
 
-    const nombre = sanitize(body.nombre);
-    const telefono = sanitize(body.telefono);
-    const mensaje = sanitize(body.mensaje);
+    const nombre = cleanText(body.nombre, 100);
+    const telefono = cleanText(body.telefono, 24);
+    const mensaje = cleanText(body.mensaje, 200);
+    const honeypot = cleanText(body.website, 80);
+    const startedAt = Number(body.startedAt);
+
+    if (honeypot) {
+      return NextResponse.json({ success: true });
+    }
+
+    if (
+      !Number.isFinite(startedAt) ||
+      Date.now() - startedAt < 2_000 ||
+      Date.now() - startedAt > 60 * 60 * 1000
+    ) {
+      return NextResponse.json(
+        { error: "Actualiza la página e intenta otra vez." },
+        { status: 400 }
+      );
+    }
 
     if (nombre.length < 2 || nombre.length > 100) {
       return NextResponse.json(
@@ -97,7 +108,7 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!/^[\d\s\-\+\(\)]{7,20}$/.test(telefono)) {
+    if (!isValidPhone(telefono)) {
       return NextResponse.json(
         {
           error: "Teléfono inválido.",
@@ -116,7 +127,9 @@ export async function POST(request: Request) {
       process.env.PHARMACY_EMAIL || "firstpharmacy.3pr@gmail.com";
 
     const result = await resend.emails.send({
-      from: "First Choice Pharmacy <onboarding@resend.dev>",
+      from:
+        process.env.REFILL_FROM_EMAIL ||
+        "First Choice Pharmacy <onboarding@resend.dev>",
       to: pharmacyEmail,
       subject: "Nueva solicitud de refill",
       html: `
@@ -166,7 +179,7 @@ export async function POST(request: Request) {
     });
 
     if (result.error) {
-      console.error("Resend error:", result.error);
+      console.error("Resend refill error:", result.error.name);
 
       return NextResponse.json(
         {
@@ -182,7 +195,7 @@ export async function POST(request: Request) {
       success: true,
     });
   } catch (error) {
-    console.error("Refill API error:", error);
+    console.error("Refill API error.");
 
     return NextResponse.json(
       {
