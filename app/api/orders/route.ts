@@ -1,7 +1,11 @@
 import { randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
-import { getSupabaseClient } from "@/lib/supabase";
+import {
+  hasSupabaseConfig,
+  selectFromSupabase,
+  SupabaseRestError,
+} from "@/lib/supabase";
 import {
   cleanText,
   escapeHtml,
@@ -66,8 +70,7 @@ export async function POST(request: Request) {
   }
 
   const resendApiKey = process.env.RESEND_API_KEY;
-  const supabase = getSupabaseClient();
-  if (!resendApiKey || !supabase) {
+  if (!resendApiKey || !hasSupabaseConfig()) {
     return NextResponse.json(
       { error: "El servicio de órdenes no está disponible temporalmente." },
       { status: 503 }
@@ -140,19 +143,19 @@ export async function POST(request: Request) {
     }
 
     const ids = [...quantities.keys()];
-    const { data: products, error: productError } = await supabase
-      .from("products")
-      .select("id,name,sku,price,is_active,requires_prescription")
-      .in("id", ids)
-      .eq("is_active", true)
-      .eq("requires_prescription", false);
+    const products = await selectFromSupabase<{
+      id: string;
+      name: string;
+      sku: string | null;
+      price: number;
+    }>("products", {
+      select: "id,name,sku,price",
+      id: `in.(${ids.join(",")})`,
+      is_active: "eq.true",
+      requires_prescription: "eq.false",
+    });
 
-    if (productError) {
-      console.error("Order product validation failed:", productError.code);
-      return NextResponse.json({ error: "No pudimos validar el carrito." }, { status: 502 });
-    }
-
-    const available = new Map((products ?? []).map((product) => [product.id, product]));
+    const available = new Map(products.map((product) => [product.id, product]));
     const production = process.env.VERCEL_ENV === "production";
 
     if (
@@ -243,7 +246,16 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, orderReference: reference, subtotal });
   } catch (error) {
-    console.error("Order API error.");
+    console.error(
+      "Order API error:",
+      error instanceof SupabaseRestError ? error.status : "unknown"
+    );
+    if (error instanceof SupabaseRestError) {
+      return NextResponse.json(
+        { error: "No pudimos validar el carrito." },
+        { status: 502 }
+      );
+    }
     return NextResponse.json({ error: "No se pudo procesar la orden." }, { status: 500 });
   }
 }
