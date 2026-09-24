@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 type Admin = { email: string; role: string };
 
@@ -25,11 +26,11 @@ export default function AdminPage() {
   if (!admin) return <main className="min-h-screen bg-slate-950 p-8 text-white">Verificando acceso…</main>;
 
   const sections = [
-    ["Productos", "Catálogo, precios y publicación"],
-    ["Inventario", "Existencias y alertas de stock"],
-    ["Órdenes", "Pedidos, pagos y fulfillment"],
-    ["Categorías", "Organización del catálogo"],
-    ["Usuarios", "Personal y permisos"],
+    ["Productos", "Catálogo, precios y publicación", "/admin/products"],
+    ["Inventario", "Existencias y alertas de stock", ""],
+    ["Órdenes", "Pedidos, pagos y fulfillment", ""],
+    ["Categorías", "Organización del catálogo", ""],
+    ["Usuarios", "Personal y permisos", ""],
   ];
 
   return (
@@ -44,11 +45,11 @@ export default function AdminPage() {
         <p className="text-sm text-white/60">Sesión: {admin.email} · {admin.role}</p>
         <h2 className="mt-3 text-3xl font-bold">Operaciones</h2>
         <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {sections.map(([title, description]) => (
+          {sections.map(([title, description, href]) => (
             <div key={title} className="rounded-2xl border border-white/10 bg-white/5 p-6">
               <h3 className="text-xl font-semibold">{title}</h3>
               <p className="mt-2 text-sm text-white/60">{description}</p>
-              <p className="mt-6 text-xs font-semibold uppercase tracking-wider text-emerald-400">Próximo módulo</p>
+              {href ? <Link href={href} className="mt-6 inline-block text-xs font-semibold uppercase tracking-wider text-emerald-400">Abrir módulo →</Link> : <p className="mt-6 text-xs font-semibold uppercase tracking-wider text-emerald-400">Próximo módulo</p>}
             </div>
           ))}
         </div>
