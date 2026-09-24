@@ -6,7 +6,10 @@ async function adminContext() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim();
   if (!token || !url || !key) return null;
-  const roles = await fetch(`${url}/rest/v1/user_roles?select=role&user_id=eq.(select auth.uid())`, { headers:{apikey:key,Authorization:`Bearer ${token}`}, cache:"no-store" });
+  const userResponse = await fetch(`${url}/auth/v1/user`, { headers:{apikey:key,Authorization:`Bearer ${token}`}, cache:"no-store" });
+  if (!userResponse.ok) return null;
+  const user = await userResponse.json();
+  const roles = await fetch(`${url}/rest/v1/user_roles?select=role&user_id=eq.${encodeURIComponent(user.id)}`, { headers:{apikey:key,Authorization:`Bearer ${token}`}, cache:"no-store" });
   if (!roles.ok) return null;
   const rows = await roles.json();
   if (!rows.some((r:{role?:string}) => ["admin","manager"].includes(r.role || ""))) return null;
