@@ -27,7 +27,7 @@ export default function AdminPage() {
 
   const sections = [
     ["Productos", "Catálogo, precios y publicación", "/admin/products"],
-    ["Inventario", "Existencias y alertas de stock", ""],
+    ["Inventario", "Existencias y alertas de stock", "/admin/inventory"],
     ["Órdenes", "Pedidos, pagos y fulfillment", ""],
     ["Categorías", "Organización del catálogo", ""],
     ["Usuarios", "Personal y permisos", ""],
