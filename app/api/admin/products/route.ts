@@ -44,7 +44,7 @@ export async function PATCH(request: Request) {
     const headers = { apikey: ctx.key, Authorization: `Bearer ${ctx.token}`, "Content-Type": "application/json", Prefer: "return=representation" };
     const productResponse = await fetch(`${ctx.url}/rest/v1/products?id=eq.${encodeURIComponent(id)}`, {
       method: "PATCH", headers,
-      body: JSON.stringify({ name, brand: brand || null, price, is_active: isActive, updated_at: new Date().toISOString() }),
+      body: JSON.stringify({ name, brand: brand || null, price, is_active: isActive, publication_status: isActive ? "published" : "draft", updated_at: new Date().toISOString() }),
       cache: "no-store"
     });
     if (!productResponse.ok) {
