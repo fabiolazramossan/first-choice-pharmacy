@@ -19,7 +19,7 @@ async function adminContext() {
 export async function GET() {
   const ctx=await adminContext();
   if(!ctx) return NextResponse.json({error:"No autorizado."},{status:401});
-  const response=await fetch(`${ctx.url}/rest/v1/products?select=id,name,brand,sku,upc,price,is_active,is_featured,publication_status,inventory(quantity,low_stock_threshold)&order=name.asc&limit=500`,{headers:{apikey:ctx.key,Authorization:`Bearer ${ctx.token}`},cache:"no-store"});
+  const response=await fetch(`${ctx.url}/rest/v1/products?select=id,name,brand,sku,upc,price,image_url,presentation_size,pan_eligibility_status,is_active,is_featured,publication_status,inventory(quantity,low_stock_threshold)&order=name.asc&limit=500`,{headers:{apikey:ctx.key,Authorization:`Bearer ${ctx.token}`},cache:"no-store"});
   if(!response.ok) return NextResponse.json({error:"No se pudieron cargar los productos."},{status:502});
   const categoriesResponse=await fetch(`${ctx.url}/rest/v1/categories?select=id,name,slug,is_active&order=sort_order.asc,name.asc`,{headers:{apikey:ctx.key,Authorization:`Bearer ${ctx.token}`},cache:"no-store"});
   const categories=categoriesResponse.ok?await categoriesResponse.json():[];
@@ -35,16 +35,23 @@ export async function PATCH(request: Request) {
     const id = typeof body.id === "string" ? body.id : "";
     const name = typeof body.name === "string" ? body.name.trim().slice(0, 160) : "";
     const brand = typeof body.brand === "string" ? body.brand.trim().slice(0, 100) : "";
+    const sku = typeof body.sku === "string" ? body.sku.trim().slice(0, 80) : "";
+    const imageUrl = typeof body.image_url === "string" ? body.image_url.trim().slice(0, 500) : "";
+    const presentationSize = typeof body.presentation_size === "string" ? body.presentation_size.trim().slice(0, 120) : "";
+    const panStatus = ["eligible","ineligible","unverified"].includes(body.pan_eligibility_status) ? body.pan_eligibility_status : "unverified";
     const price = Number(body.price);
     const quantity = Number(body.quantity);
     const isActive = body.is_active === true;
     if (!id || !name || !Number.isFinite(price) || price < 0 || !Number.isInteger(quantity) || quantity < 0) {
       return NextResponse.json({ error: "Datos del producto inválidos." }, { status: 400 });
     }
+    if (isActive && (!sku || !presentationSize || price <= 0 || !imageUrl.startsWith(`${ctx.url}/storage/v1/object/public/`) || !["eligible","ineligible"].includes(panStatus))) {
+      return NextResponse.json({ error: "Para publicar: completa SKU, presentación/tamaño, precio mayor de $0, clasificación PAN e imagen subida a Supabase Storage." }, { status: 400 });
+    }
     const headers = { apikey: ctx.key, Authorization: `Bearer ${ctx.token}`, "Content-Type": "application/json", Prefer: "return=representation" };
     const productResponse = await fetch(`${ctx.url}/rest/v1/products?id=eq.${encodeURIComponent(id)}`, {
       method: "PATCH", headers,
-      body: JSON.stringify({ name, brand: brand || null, price, is_active: isActive, publication_status: isActive ? "published" : "draft", updated_at: new Date().toISOString() }),
+      body: JSON.stringify({ name, brand: brand || null, sku: sku || null, price, image_url: imageUrl || null, presentation_size: presentationSize || null, pan_eligibility_status: panStatus, is_active: isActive, publication_status: isActive ? "published" : "draft", updated_at: new Date().toISOString() }),
       cache: "no-store"
     });
     if (!productResponse.ok) {
