@@ -13,7 +13,8 @@
 --   2. Locks the inventory rows of the requested products (FOR UPDATE, in a
 --      stable order to avoid deadlocks) so two checkouts cannot sell the same
 --      last unit.
---   3. Re-checks every product is active, published and OTC, and that stock
+--   3. Re-checks every product is active, published, OTC and in an active
+--      category, and that stock
 --      covers the requested quantity.
 --   4. Reads prices from the database (the browser never sets prices).
 --   5. Inserts orders + order_items, decrements inventory, and writes the
@@ -108,7 +109,9 @@ begin
   select count(*) into v_found
   from products p
   join inventory i on i.product_id = p.id
+  join categories c on c.id = p.category_id
   where p.id = any(v_ids)
+    and c.is_active
     and p.is_active
     and p.publication_status = 'published'
     and not p.requires_prescription;
