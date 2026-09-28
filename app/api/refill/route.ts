@@ -7,6 +7,7 @@ import {
   getClientIp,
   isTrustedBrowserRequest,
   isValidPhone,
+  readJsonObject,
 } from "@/lib/server-security";
 import { createRateLimiter } from "@/lib/rate-limit";
 
@@ -54,7 +55,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const body = await request.json();
+    const body = await readJsonObject(request);
+    if (!body) return NextResponse.json({ error: "Solicitud inválida." }, { status: 400 });
 
     const nombre = cleanText(body.nombre, 100);
     const telefono = cleanText(body.telefono, 24);

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { adminHeaders, requireAdmin, type AdminContext } from "@/lib/admin-auth";
 import { parsePage, parseSearchTerms, productSearchFilter } from "@/lib/search";
+import { isUuid, readJsonObject } from "@/lib/server-security";
 
 const PAGE_SIZE = 50;
 // Supabase returns at most 1,000 rows per request (db-max-rows), so scans page.
@@ -138,8 +139,9 @@ export async function PATCH(request: Request) {
   const { ctx: c, error } = await requireAdmin(request);
   if (error) return error;
   try {
-    const b = await request.json();
-    const productId = typeof b.product_id === "string" ? b.product_id : "";
+    const b = await readJsonObject(request);
+    if (!b) return NextResponse.json({ error: "Solicitud inválida." }, { status: 400 });
+    const productId = isUuid(b.product_id) ? b.product_id : "";
     const quantity = Number(b.quantity);
     const threshold = Number(b.low_stock_threshold);
     const expected = Number(b.expected_quantity);

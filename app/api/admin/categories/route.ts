@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { adminHeaders, requireAdmin } from "@/lib/admin-auth";
-import { cleanText } from "@/lib/server-security";
+import { cleanText, isUuid, readJsonObject } from "@/lib/server-security";
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 function slugify(value: string) {
@@ -45,7 +44,8 @@ export async function POST(request: Request) {
   const { ctx, error } = await requireAdmin(request);
   if (error) return error;
   try {
-    const body = await request.json();
+    const body = await readJsonObject(request);
+    if (!body) return NextResponse.json({ error: "Solicitud inválida." }, { status: 400 });
     const fields = readFields(body);
     const slug = typeof body.slug === "string" && body.slug.trim() ? body.slug.trim().toLowerCase() : slugify(fields.name);
     if (fields.name.length < 2 || !SLUG.test(slug) || slug.length > 80) {
@@ -76,8 +76,9 @@ export async function PATCH(request: Request) {
   const { ctx, error } = await requireAdmin(request);
   if (error) return error;
   try {
-    const body = await request.json();
-    const id = typeof body.id === "string" && UUID.test(body.id) ? body.id : "";
+    const body = await readJsonObject(request);
+    if (!body) return NextResponse.json({ error: "Solicitud inválida." }, { status: 400 });
+    const id = isUuid(body.id) ? body.id : "";
     const fields = readFields(body);
     if (!id || fields.name.length < 2) {
       return NextResponse.json({ error: "Datos de la categoría inválidos." }, { status: 400 });

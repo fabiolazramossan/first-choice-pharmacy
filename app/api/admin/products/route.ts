@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-auth";
+import { isUuid, readJsonObject } from "@/lib/server-security";
 import { parsePage, parseSearchTerms, productSearchFilter } from "@/lib/search";
 
 const ADMIN_PAGE_SIZE = 50;
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const PRODUCT_FIELDS =
   "id,name,brand,sku,upc,price,image_url,presentation_size,pan_eligibility_status,is_active,is_featured,publication_status,category_id";
 
@@ -32,7 +32,7 @@ export async function GET(request: Request) {
   }
   if (stock === "out") query.set("inventory.quantity", "eq.0");
   if (stock === "in") query.set("inventory.quantity", "gt.0");
-  if (UUID.test(category)) query.set("category_id", `eq.${category}`);
+  if (isUuid(category)) query.set("category_id", `eq.${category}`);
   const terms = parseSearchTerms(params.get("q"));
   if (terms.length) query.set("and", productSearchFilter(terms));
   query.set("offset", String((page - 1) * ADMIN_PAGE_SIZE));
@@ -64,18 +64,19 @@ export async function PATCH(request: Request) {
   const { ctx, error } = await requireAdmin(request);
   if (error) return error;
   try {
-    const body = await request.json();
-    const id = typeof body.id === "string" ? body.id : "";
+    const body = await readJsonObject(request);
+    if (!body) return NextResponse.json({ error: "Solicitud inválida." }, { status: 400 });
+    const id = isUuid(body.id) ? body.id : "";
     const name = typeof body.name === "string" ? body.name.trim().slice(0, 160) : "";
     const brand = typeof body.brand === "string" ? body.brand.trim().slice(0, 100) : "";
     const sku = typeof body.sku === "string" ? body.sku.trim().slice(0, 80) : "";
     const imageUrl = typeof body.image_url === "string" ? body.image_url.trim().slice(0, 500) : "";
     const presentationSize = typeof body.presentation_size === "string" ? body.presentation_size.trim().slice(0, 120) : "";
-    const panStatus = ["eligible","ineligible","unverified"].includes(body.pan_eligibility_status) ? body.pan_eligibility_status : "unverified";
+    const panStatus = typeof body.pan_eligibility_status === "string" && ["eligible","ineligible","unverified"].includes(body.pan_eligibility_status) ? body.pan_eligibility_status : "unverified";
     const price = Number(body.price);
     const quantity = Number(body.quantity);
     const isActive = body.is_active === true;
-    const categoryId = typeof body.category_id === "string" && UUID.test(body.category_id) ? body.category_id : null;
+    const categoryId = isUuid(body.category_id) ? body.category_id : null;
     if (!id || !name || !Number.isFinite(price) || price < 0 || !Number.isInteger(quantity) || quantity < 0) {
       return NextResponse.json({ error: "Datos del producto inválidos." }, { status: 400 });
     }
@@ -129,12 +130,13 @@ export async function POST(request: Request) {
   const { ctx, error } = await requireAdmin(request);
   if (error) return error;
   try {
-    const body = await request.json();
+    const body = await readJsonObject(request);
+    if (!body) return NextResponse.json({ error: "Solicitud inválida." }, { status: 400 });
     const name = typeof body.name === "string" ? body.name.trim().slice(0, 160) : "";
     const brand = typeof body.brand === "string" ? body.brand.trim().slice(0, 100) : "";
     const sku = typeof body.sku === "string" ? body.sku.trim().slice(0, 80) : "";
     const upc = typeof body.upc === "string" ? body.upc.trim().slice(0, 80) : "";
-    const categoryId = typeof body.category_id === "string" ? body.category_id : "";
+    const categoryId = isUuid(body.category_id) ? body.category_id : "";
     const price = Number(body.price);
     const quantity = Number(body.quantity);
     if (!name || !categoryId || !Number.isFinite(price) || price < 0 || !Number.isInteger(quantity) || quantity < 0) {

@@ -13,6 +13,7 @@ import {
   isTrustedBrowserRequest,
   isValidEmail,
   isValidPhone,
+  readJsonObject,
 } from "@/lib/server-security";
 
 export const runtime = "nodejs";
@@ -67,7 +68,8 @@ export async function POST(request: Request) {
   }
 
   try {
-    const body = await request.json();
+    const body = await readJsonObject(request);
+    if (!body) return NextResponse.json({ error: "Solicitud inválida." }, { status: 400 });
     const customerName = cleanText(body.customerName, 100);
     const customerPhone = cleanText(body.customerPhone, 24);
     const customerEmail = cleanText(body.customerEmail, 160).toLowerCase();

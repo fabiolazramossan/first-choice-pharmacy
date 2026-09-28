@@ -63,3 +63,19 @@ export function isValidEmail(value: string): boolean {
 export function isValidPhone(value: string): boolean {
   return /^[\d\s\-+().]{7,24}$/.test(value);
 }
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export function isUuid(value: unknown): value is string {
+  return typeof value === "string" && UUID_RE.test(value);
+}
+
+/** Parses a JSON object body; returns null for malformed or non-object bodies (→ 400). */
+export async function readJsonObject(request: Request): Promise<Record<string, unknown> | null> {
+  try {
+    const body: unknown = await request.json();
+    return body && typeof body === "object" && !Array.isArray(body) ? (body as Record<string, unknown>) : null;
+  } catch {
+    return null;
+  }
+}

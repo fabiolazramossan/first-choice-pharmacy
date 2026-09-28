@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { adminHeaders, requireAdmin, type AdminContext } from "@/lib/admin-auth";
 import { parseCsv } from "@/lib/csv";
 import { validateImport, type ImportIssue, type ImportRow } from "@/lib/product-import";
-import { exceedsBodyLimit } from "@/lib/server-security";
+import { exceedsBodyLimit, readJsonObject } from "@/lib/server-security";
 
 // POST /api/admin/products/import  { csv: string, commit?: boolean }
 //
@@ -58,7 +58,8 @@ export async function POST(request: Request) {
   }
 
   try {
-    const body = await request.json();
+    const body = await readJsonObject(request);
+    if (!body) return NextResponse.json({ error: "Solicitud inválida." }, { status: 400 });
     if (typeof body.csv !== "string" || !body.csv.trim()) {
       return NextResponse.json({ error: "Selecciona un archivo CSV." }, { status: 400 });
     }

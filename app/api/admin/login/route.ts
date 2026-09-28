@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { adminSupabaseConfig, pickAdminRole, sessionCookies } from "@/lib/admin-auth";
 import { createRateLimiter } from "@/lib/rate-limit";
-import { exceedsBodyLimit, getClientIp, isTrustedBrowserRequest } from "@/lib/server-security";
+import { exceedsBodyLimit, getClientIp, isTrustedBrowserRequest, readJsonObject } from "@/lib/server-security";
 
 // Failed attempts only. Per-email protects one account from password guessing;
 // per-IP slows one client trying many accounts. Best-effort per instance.
@@ -34,7 +34,9 @@ export async function POST(request: Request) {
   if (failuresByIp.isLimited(ip)) return tooMany(failuresByIp.retryAfter(ip));
 
   try {
-    const { email, password } = await request.json();
+    const body = await readJsonObject(request);
+    if (!body) return NextResponse.json({ error: "Solicitud inválida." }, { status: 400 });
+    const { email, password } = body;
     if (typeof email !== "string" || typeof password !== "string" || !email || !password || email.length > 160 || password.length > 200) {
       return NextResponse.json({ error: "Email y contraseña son requeridos." }, { status: 400 });
     }
