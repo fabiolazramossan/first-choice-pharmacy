@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
@@ -13,7 +14,35 @@ function money(value: number) {
 }
 
 export default function CartPage() {
-  const { items, subtotal, updateQuantity, removeItem, clearCart } = useCart();
+  const { items, hydrated, subtotal, updateQuantity, removeItem, clearCart, applyAvailability } = useCart();
+  // product id -> how many can be ordered now (0 = unavailable or sold out)
+  const [available, setAvailable] = useState<Record<string, number> | null>(null);
+  const idsKey = useMemo(() => items.map((i) => i.id).sort().join(","), [items]);
+
+  // Re-check prices and availability against the live catalog once the saved
+  // cart is loaded (and whenever the set of products changes). The server
+  // re-validates everything at checkout regardless.
+  useEffect(() => {
+    if (!hydrated || !idsKey) return;
+    let cancelled = false;
+    fetch(`/api/catalog/cart?ids=${idsKey}`, { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((d: { items: { id: string; name: string; price: number; image_url: string | null; max_quantity: number }[] }) => {
+        if (cancelled) return;
+        applyAvailability(d.items);
+        const map: Record<string, number> = {};
+        for (const id of idsKey.split(",")) map[id] = d.items.find((i) => i.id === id)?.max_quantity ?? 0;
+        setAvailable(map);
+      })
+      .catch(() => {
+        if (!cancelled) setAvailable(null); // could not verify; checkout still validates
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [hydrated, idsKey, applyAvailability]);
+
+  const unavailableCount = available ? items.filter((i) => available[i.id] === 0).length : 0;
 
   return (
     <main id="contenido" className="min-h-screen bg-gray-50 px-4 py-10 sm:px-6">
@@ -23,7 +52,7 @@ export default function CartPage() {
             <p className="text-sm font-semibold uppercase tracking-wider text-green-700">Tu orden</p>
             <h1 className="text-3xl font-extrabold text-gray-900">Carrito</h1>
           </div>
-          <Link href="/#products" className="text-sm font-semibold text-green-700 hover:underline">
+          <Link href="/productos" className="py-2.5 text-sm font-semibold text-green-700 hover:underline">
             Seguir comprando
           </Link>
         </div>
@@ -46,7 +75,7 @@ export default function CartPage() {
                     {item.image_url ? (
                       <Image
                         src={item.image_url}
-                        alt={item.name}
+                        alt=""
                         width={96}
                         height={96}
                         className="h-full w-full object-contain p-2"
@@ -61,18 +90,29 @@ export default function CartPage() {
                       <div>
                         <h2 className="font-bold text-gray-900">{item.name}</h2>
                         <p className="mt-1 text-sm font-semibold text-green-700">{money(item.price)}</p>
+                        {available?.[item.id] === 0 && (
+                          <p role="alert" className="mt-1 text-xs font-semibold text-red-700">
+                            No disponible en este momento. Elimínalo para continuar.
+                          </p>
+                        )}
                       </div>
-                      <button type="button" onClick={() => removeItem(item.id)} className="rounded-full p-2 text-gray-400 hover:bg-red-50 hover:text-red-600" aria-label={`Eliminar ${item.name}`}>
+                      <button type="button" onClick={() => removeItem(item.id)} className="rounded-full p-2 text-gray-500 hover:bg-red-50 hover:text-red-600" aria-label={`Eliminar ${item.name}`}>
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
 
                     <div className="mt-4 flex items-center gap-3">
-                      <button type="button" onClick={() => updateQuantity(item.id, item.quantity - 1)} className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white hover:bg-gray-50" aria-label="Reducir cantidad">
+                      <button type="button" onClick={() => updateQuantity(item.id, item.quantity - 1)} className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white hover:bg-gray-50" aria-label={`Reducir cantidad de ${item.name}`}>
                         <Minus className="h-4 w-4" />
                       </button>
                       <span className="min-w-8 text-center text-sm font-bold text-gray-900">{item.quantity}</span>
-                      <button type="button" onClick={() => updateQuantity(item.id, item.quantity + 1)} className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white hover:bg-gray-50" aria-label="Aumentar cantidad">
+                      <button
+                        type="button"
+                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        disabled={available ? item.quantity >= (available[item.id] ?? 10) : item.quantity >= 10}
+                        className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+                        aria-label={`Aumentar cantidad de ${item.name}`}
+                      >
                         <Plus className="h-4 w-4" />
                       </button>
                       <span className="ml-auto text-sm font-extrabold text-gray-900">{money(item.price * item.quantity)}</span>
@@ -96,9 +136,15 @@ export default function CartPage() {
               <div className="my-5 border-t border-gray-100" />
               <div className="flex justify-between text-lg font-extrabold text-gray-900"><span>Total estimado</span><span>{money(subtotal)}</span></div>
 
-              <Link href="/checkout" className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-green-600 py-3.5 text-sm font-bold text-white hover:bg-green-700">
-                Continuar la orden <ArrowRight className="h-4 w-4" />
-              </Link>
+              {unavailableCount > 0 ? (
+                <p role="status" className="mt-6 rounded-2xl bg-red-50 p-4 text-center text-sm font-semibold text-red-700">
+                  Elimina {unavailableCount === 1 ? "el producto no disponible" : `los ${unavailableCount} productos no disponibles`} para continuar.
+                </p>
+              ) : (
+                <Link href="/checkout" className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-green-600 py-3.5 text-sm font-bold text-white hover:bg-green-700">
+                  Continuar la orden <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              )}
               <p className="mt-3 text-center text-xs leading-relaxed text-gray-500">
                 No cobramos tu tarjeta en esta etapa. La farmacia confirma disponibilidad y el total antes del pago.
               </p>

@@ -20,12 +20,15 @@ export type CartItem = {
 
 type CartContextValue = {
   items: CartItem[];
+  hydrated: boolean;
   itemCount: number;
   subtotal: number;
   addItem: (item: Omit<CartItem, "quantity">) => void;
   updateQuantity: (id: string, quantity: number) => void;
   removeItem: (id: string) => void;
   clearCart: () => void;
+  /** Applies current catalog data (price/name/image) and caps quantities to what is available. */
+  applyAvailability: (current: { id: string; name: string; price: number; image_url: string | null; max_quantity: number }[]) => void;
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -129,17 +132,36 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const clearCart = useCallback(() => setItems([]), []);
 
+  const applyAvailability = useCallback<CartContextValue["applyAvailability"]>((current) => {
+    const byId = new Map(current.map((c) => [c.id, c]));
+    setItems((items) =>
+      items.map((item) => {
+        const latest = byId.get(item.id);
+        if (!latest) return item; // unavailable: kept so the customer sees it and can remove it
+        return {
+          ...item,
+          name: latest.name,
+          price: latest.price,
+          image_url: safeProductImage(latest.image_url),
+          quantity: latest.max_quantity > 0 ? Math.min(item.quantity, latest.max_quantity) : item.quantity,
+        };
+      })
+    );
+  }, []);
+
   const value = useMemo(
     () => ({
       items,
+      hydrated,
       itemCount: items.reduce((sum, item) => sum + item.quantity, 0),
       subtotal: items.reduce((sum, item) => sum + item.price * item.quantity, 0),
       addItem,
       updateQuantity,
       removeItem,
       clearCart,
+      applyAvailability,
     }),
-    [addItem, clearCart, items, removeItem, updateQuantity]
+    [addItem, applyAvailability, clearCart, hydrated, items, removeItem, updateQuantity]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

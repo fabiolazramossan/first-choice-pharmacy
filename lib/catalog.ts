@@ -169,3 +169,32 @@ export async function getPublicProductSlugs(): Promise<string[]> {
   }
   return slugs;
 }
+
+export type CartAvailability = {
+  id: string;
+  name: string;
+  slug: string;
+  price: number;
+  image_url: string | null;
+  /** How many the customer may order now: min(stock, 10); 0 = sold out. */
+  max_quantity: number;
+};
+
+/** Current price/availability for cart items. Missing ids are not publicly available. */
+export async function getCartAvailability(ids: string[]): Promise<CartAvailability[]> {
+  if (!ids.length) return [];
+  const rows = await selectFromSupabase<ProductRow>("products", {
+    select: "id,name,slug,price,image_url,inventory(quantity),category:categories!inner(is_active)",
+    ...publicProductFilters(),
+    "category.is_active": "eq.true",
+    id: `in.(${ids.join(",")})`,
+  });
+  return rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    price: Number(row.price),
+    image_url: row.image_url,
+    max_quantity: Math.min(stockOf(row.inventory), 10),
+  }));
+}
