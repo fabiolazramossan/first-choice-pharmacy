@@ -1,9 +1,10 @@
 // Server-side catalog queries (imported only from server components and route handlers).
 import { selectFromSupabase, selectPageFromSupabase } from "@/lib/supabase";
+import { accentInsensitivePattern, foldAccents, parseSearchTerms } from "@/lib/search";
+
+export { parsePage } from "@/lib/search";
 
 export const CATALOG_PAGE_SIZE = 24;
-const MAX_PAGE = 1000;
-const MAX_SEARCH_TERMS = 5;
 
 export type CatalogCategory = {
   id: string;
@@ -54,27 +55,6 @@ export function stockOf(inventory: ProductRow["inventory"]): number {
   return Number.isInteger(quantity) && quantity > 0 ? quantity : 0;
 }
 
-/**
- * Normalizes free-text search into at most five safe terms. Only letters,
- * digits and hyphens survive, so terms cannot inject PostgREST filter syntax
- * (commas, parentheses, dots) or LIKE wildcards.
- */
-export function parseSearchTerms(raw: string | null | undefined): string[] {
-  return String(raw ?? "")
-    .normalize("NFC")
-    .slice(0, 80)
-    .replace(/[^\p{L}\p{N}\s-]/gu, " ")
-    .split(/\s+/)
-    .map((term) => term.replace(/^-+|-+$/g, "").toLowerCase())
-    .filter(Boolean)
-    .slice(0, MAX_SEARCH_TERMS);
-}
-
-export function parsePage(raw: string | null | undefined): number {
-  const page = Number(raw);
-  return Number.isInteger(page) && page >= 1 ? Math.min(page, MAX_PAGE) : 1;
-}
-
 export async function getActiveCategories(): Promise<CatalogCategory[]> {
   return selectFromSupabase<CatalogCategory>("categories", {
     select: "id,name,slug,description,sort_order",
@@ -115,9 +95,16 @@ export async function searchCatalog({
 
   const terms = parseSearchTerms(search);
   if (terms.length) {
-    // Every term must match at least one of name, brand, SKU or UPC.
+    // Every term must match at least one of name, brand, SKU or UPC. Name and
+    // brand ignore accents ("acetaminofen" finds "Acetaminofén"). Quoted
+    // values are only unquoted by PostgREST inside and()/or() groups, which
+    // is always the case here.
     query.and = `(${terms
-      .map((t) => `or(name.ilike.*${t}*,brand.ilike.*${t}*,sku.ilike.*${t}*,upc.ilike.*${t}*)`)
+      .map((t) => {
+        const pattern = accentInsensitivePattern(t);
+        const plain = foldAccents(t);
+        return `or(name.imatch."${pattern}",brand.imatch."${pattern}",sku.ilike.*${plain}*,upc.ilike.*${plain}*)`;
+      })
       .join(",")})`;
   }
 
