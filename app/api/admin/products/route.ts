@@ -78,15 +78,16 @@ export async function POST(request: Request) {
     const categoryId = typeof body.category_id === "string" ? body.category_id : "";
     const price = Number(body.price);
     const quantity = Number(body.quantity);
-    const isActive = body.is_active === true;
     if (!name || !categoryId || !Number.isFinite(price) || price < 0 || !Number.isInteger(quantity) || quantity < 0) {
       return NextResponse.json({ error: "Completa nombre, categoría, precio y stock correctamente." }, { status: 400 });
     }
     const headers = { apikey: ctx.key, Authorization: `Bearer ${ctx.token}`, "Content-Type": "application/json", Prefer: "return=representation" };
+    // New products always start as drafts: publication readiness (image, SKU,
+    // presentation, PAN) is only captured and enforced by the edit flow (PATCH).
     const slug = `${slugify(name)}-${crypto.randomUUID().slice(0,8)}`;
     const productResponse = await fetch(`${ctx.url}/rest/v1/products`, {
       method: "POST", headers,
-      body: JSON.stringify({ name, slug, brand: brand || null, sku: sku || null, upc: upc || null, category_id: categoryId, price, is_active: isActive, publication_status: isActive ? "published" : "draft", requires_prescription: false }),
+      body: JSON.stringify({ name, slug, brand: brand || null, sku: sku || null, upc: upc || null, category_id: categoryId, price, is_active: false, publication_status: "draft", requires_prescription: false }),
       cache: "no-store"
     });
     if (!productResponse.ok) {
