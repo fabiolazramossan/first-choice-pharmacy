@@ -6,6 +6,7 @@ import {
   selectFromSupabase,
   SupabaseRestError,
 } from "@/lib/supabase";
+import { publicProductFilters, stockOf } from "@/lib/catalog";
 import {
   cleanText,
   escapeHtml,
@@ -157,22 +158,26 @@ export async function POST(request: Request) {
       name: string;
       sku: string | null;
       price: number;
+      inventory: { quantity: number } | { quantity: number }[] | null;
     }>("products", {
-      select: "id,name,sku,price",
+      select: "id,name,sku,price,inventory(quantity)",
       id: `in.(${ids.join(",")})`,
-      is_active: "eq.true",
-      requires_prescription: "eq.false",
+      ...publicProductFilters(),
     });
 
     const available = new Map(products.map((product) => [product.id, product]));
-    const production = process.env.VERCEL_ENV === "production";
 
-    if (
-      available.size !== ids.length ||
-      (production && [...available.values()].some((product) => product.name.startsWith("[PRUEBA]")))
-    ) {
+    if (available.size !== ids.length) {
       return NextResponse.json(
         { error: "Uno o más productos ya no están disponibles. Actualiza el carrito." },
+        { status: 409 }
+      );
+    }
+
+    const shortItem = products.find((product) => stockOf(product.inventory) < quantities.get(product.id)!);
+    if (shortItem) {
+      return NextResponse.json(
+        { error: `No hay suficiente inventario de ${shortItem.name}. Ajusta la cantidad en el carrito.` },
         { status: 409 }
       );
     }
