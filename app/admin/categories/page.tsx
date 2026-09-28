@@ -90,7 +90,7 @@ export default function CategoriesPage() {
         {loading ? (
           <p className="mt-8 text-white/60">Cargando categorías…</p>
         ) : (
-          <div className="mt-6 overflow-x-auto rounded-2xl border border-white/10">
+          <div className="relative mt-6 overflow-x-auto rounded-2xl border border-white/10">
             <table className="w-full min-w-[720px] text-left text-sm">
               <thead className="bg-white/5 text-white/60">
                 <tr>

@@ -125,7 +125,7 @@ export default function InventoryPage() {
         </div>
         <p className="mt-4 text-sm text-white/60" role="status">{loading ? "Cargando…" : `${total} productos`}</p>
         {error && <p role="alert" className="mt-5 rounded-xl bg-red-500/10 p-4 text-red-300">{error}</p>}
-        <div className="mt-4 overflow-x-auto rounded-2xl border border-white/10" aria-busy={loading}>
+        <div className="relative mt-4 overflow-x-auto rounded-2xl border border-white/10" aria-busy={loading}>
           <table className="w-full min-w-[900px] text-left text-sm">
             <thead className="bg-white/5 text-white/60">
               <tr>

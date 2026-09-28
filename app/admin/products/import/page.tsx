@@ -138,7 +138,7 @@ export default function ImportProductsPage() {
             <IssueList title="Fallaron al guardar" items={report.failed ?? []} tone="border-red-400/30 text-red-200" />
 
             {!report.commit && report.preview.length > 0 && (
-              <div className="mt-6 overflow-x-auto rounded-2xl border border-white/10">
+              <div className="relative mt-6 overflow-x-auto rounded-2xl border border-white/10">
                 <table className="w-full min-w-[600px] text-left text-sm">
                   <caption className="p-3 text-left text-white/60">Primeros {report.preview.length} productos a crear</caption>
                   <thead className="bg-white/5 text-white/60">
