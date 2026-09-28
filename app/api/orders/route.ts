@@ -57,6 +57,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Solicitud no permitida." }, { status: 403 });
   }
 
+  // Store-wide switch: online ordering stays closed until pricing and real
+  // inventory are ready and ORDERS_ENABLED=true is set explicitly.
+  if (process.env.ORDERS_ENABLED !== "true") {
+    return NextResponse.json(
+      { error: "Las órdenes en línea aún no están disponibles. Llámanos o escríbenos por WhatsApp." },
+      { status: 503 }
+    );
+  }
+
   if (exceedsBodyLimit(request, 24_000)) {
     return NextResponse.json({ error: "Solicitud demasiado grande." }, { status: 413 });
   }

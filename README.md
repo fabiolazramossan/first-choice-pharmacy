@@ -36,6 +36,7 @@ Copia `.env.example` y configura:
 - `RESEND_API_KEY`: clave privada de Resend, solo para el servidor.
 - `PHARMACY_EMAIL`: buzón que recibe pedidos y solicitudes de refill.
 - `REFILL_FROM_EMAIL` y `ORDER_FROM_EMAIL`: remitentes verificados en Resend.
+- `ORDERS_ENABLED`: debe ser exactamente `true` para aceptar órdenes en línea. Mientras no esté configurado, `/api/orders` responde 503.
 
 ## Verificación antes de producción
 
