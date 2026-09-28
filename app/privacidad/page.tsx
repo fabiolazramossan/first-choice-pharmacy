@@ -5,6 +5,7 @@ import { BRAND } from "@/lib/data";
 export const metadata = {
   title: "Privacidad del sitio web",
   description: "Cómo First Choice Pharmacy maneja los datos enviados por este sitio web.",
+  alternates: { canonical: "/privacidad" },
 };
 
 export default function Privacidad() {

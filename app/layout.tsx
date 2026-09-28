@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans, Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { CartProvider } from "@/components/CartProvider";
+import { SITE_URL } from "@/lib/site";
 
 const display = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -18,8 +19,7 @@ const body = Inter({
   display: "swap",
 });
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://first-choice-pharmacy.vercel.app";
+const siteUrl = SITE_URL;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -52,7 +52,6 @@ export const metadata: Metadata = {
     description:
       "Refills, vacunas, WIC, delivery y productos de bienestar en San Juan.",
   },
-  alternates: { canonical: siteUrl },
   robots: { index: true, follow: true },
 };
 

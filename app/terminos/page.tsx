@@ -5,6 +5,7 @@ import { BRAND } from "@/lib/data";
 export const metadata = {
   title: "Términos de uso y órdenes",
   description: "Términos de uso y órdenes en línea de First Choice Pharmacy.",
+  alternates: { canonical: "/terminos" },
 };
 
 export default function Terminos() {
