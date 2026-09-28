@@ -1,13 +1,20 @@
 import { NextResponse } from "next/server";
+import { ADMIN_SESSION_COOKIE, adminSupabaseConfig, pickAdminRole } from "@/lib/admin-auth";
+import { exceedsBodyLimit, isTrustedBrowserRequest } from "@/lib/server-security";
 
 function config() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim();
-  if (!url || !key) throw new Error("Supabase configuration is missing.");
-  return { url, key };
+  const config = adminSupabaseConfig();
+  if (!config) throw new Error("Supabase configuration is missing.");
+  return config;
 }
 
 export async function POST(request: Request) {
+  if (!isTrustedBrowserRequest(request)) {
+    return NextResponse.json({ error: "Solicitud no permitida." }, { status: 403 });
+  }
+  if (exceedsBodyLimit(request, 4_000)) {
+    return NextResponse.json({ error: "Solicitud demasiado grande." }, { status: 413 });
+  }
   try {
     const { email, password } = await request.json();
     if (typeof email !== "string" || typeof password !== "string" || !email || !password) {
@@ -32,14 +39,12 @@ export async function POST(request: Request) {
       cache: "no-store",
     });
     const rows = roles.ok ? await roles.json() : [];
-    const allowed = rows.some((row: { role?: string }) => row.role === "admin" || row.role === "manager");
-
-    if (!allowed) {
+    if (!pickAdminRole(rows)) {
       return NextResponse.json({ error: "Esta cuenta no tiene acceso administrativo." }, { status: 403 });
     }
 
     const response = NextResponse.json({ success: true });
-    response.cookies.set("fc_admin_session", session.access_token, {
+    response.cookies.set(ADMIN_SESSION_COOKIE, session.access_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",

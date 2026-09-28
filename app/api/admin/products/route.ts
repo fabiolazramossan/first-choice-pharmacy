@@ -1,24 +1,9 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-
-async function adminContext() {
-  const token = (await cookies()).get("fc_admin_session")?.value;
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim();
-  if (!token || !url || !key) return null;
-  const userResponse = await fetch(`${url}/auth/v1/user`, { headers:{apikey:key,Authorization:`Bearer ${token}`}, cache:"no-store" });
-  if (!userResponse.ok) return null;
-  const user = await userResponse.json();
-  const roles = await fetch(`${url}/rest/v1/user_roles?select=role&user_id=eq.${encodeURIComponent(user.id)}`, { headers:{apikey:key,Authorization:`Bearer ${token}`}, cache:"no-store" });
-  if (!roles.ok) return null;
-  const rows = await roles.json();
-  if (!rows.some((r:{role?:string}) => ["admin","manager"].includes(r.role || ""))) return null;
-  return {url,key,token};
-}
+import { requireAdmin } from "@/lib/admin-auth";
 
 export async function GET() {
-  const ctx=await adminContext();
-  if(!ctx) return NextResponse.json({error:"No autorizado."},{status:401});
+  const { ctx, error } = await requireAdmin();
+  if (error) return error;
   const response=await fetch(`${ctx.url}/rest/v1/products?select=id,name,brand,sku,upc,price,image_url,presentation_size,pan_eligibility_status,is_active,is_featured,publication_status,inventory(quantity,low_stock_threshold)&order=name.asc&limit=500`,{headers:{apikey:ctx.key,Authorization:`Bearer ${ctx.token}`},cache:"no-store"});
   if(!response.ok) return NextResponse.json({error:"No se pudieron cargar los productos."},{status:502});
   const categoriesResponse=await fetch(`${ctx.url}/rest/v1/categories?select=id,name,slug,is_active&order=sort_order.asc,name.asc`,{headers:{apikey:ctx.key,Authorization:`Bearer ${ctx.token}`},cache:"no-store"});
@@ -28,8 +13,8 @@ export async function GET() {
 
 
 export async function PATCH(request: Request) {
-  const ctx = await adminContext();
-  if (!ctx) return NextResponse.json({ error: "No autorizado." }, { status: 401 });
+  const { ctx, error } = await requireAdmin(request);
+  if (error) return error;
   try {
     const body = await request.json();
     const id = typeof body.id === "string" ? body.id : "";
@@ -82,8 +67,8 @@ function slugify(value: string) {
 }
 
 export async function POST(request: Request) {
-  const ctx = await adminContext();
-  if (!ctx) return NextResponse.json({ error: "No autorizado." }, { status: 401 });
+  const { ctx, error } = await requireAdmin(request);
+  if (error) return error;
   try {
     const body = await request.json();
     const name = typeof body.name === "string" ? body.name.trim().slice(0, 160) : "";
