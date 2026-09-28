@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getActiveCategories } from "@/lib/catalog";
+import { getActiveCategories, getPublicProductSlugs } from "@/lib/catalog";
 import { SITE_URL } from "@/lib/site";
 
 export const revalidate = 3600;
@@ -20,6 +20,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         changeFrequency: "daily",
         priority: 0.7,
       });
+    }
+    for (const slug of await getPublicProductSlugs()) {
+      pages.push({ url: `${SITE_URL}/producto/${slug}`, changeFrequency: "weekly", priority: 0.6 });
     }
   } catch {
     // The sitemap still serves static pages if the catalog is unreachable.

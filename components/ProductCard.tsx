@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import AddToCartButton from "@/components/AddToCartButton";
 import { formatMoney, isTrustedProductImage } from "@/lib/catalog-display";
 import type { CatalogProduct } from "@/lib/catalog";
@@ -21,11 +22,12 @@ export default function ProductCard({
 
   return (
     <article className="flex flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-lg">
-      <div className="relative mb-4 flex aspect-square items-center justify-center overflow-hidden rounded-2xl bg-gray-50">
+      {/* Image duplicates the title link, so it is hidden from keyboard/screen readers. */}
+      <Link href={`/producto/${product.slug}`} tabIndex={-1} aria-hidden="true" className="relative mb-4 flex aspect-square items-center justify-center overflow-hidden rounded-2xl bg-gray-50">
         {isTrustedProductImage(product.image_url) ? (
           <Image
             src={product.image_url}
-            alt={product.name}
+            alt=""
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
             className="object-contain p-3"
@@ -38,12 +40,16 @@ export default function ProductCard({
             Agotado
           </span>
         )}
-      </div>
+      </Link>
 
       {product.brand && (
         <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{product.brand}</p>
       )}
-      <Heading className="mt-1 text-sm font-bold text-gray-900">{product.name}</Heading>
+      <Heading className="mt-1 text-sm font-bold text-gray-900">
+        <Link href={`/producto/${product.slug}`} className="hover:text-green-700 hover:underline">
+          {product.name}
+        </Link>
+      </Heading>
       {product.description && (
         <p className="mt-1 line-clamp-2 text-xs text-gray-500">{product.description}</p>
       )}

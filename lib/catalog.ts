@@ -121,3 +121,44 @@ export async function searchCatalog({
     terms,
   };
 }
+
+export type CatalogProductDetail = CatalogProduct & {
+  presentation_size: string | null;
+  category: { name: string; slug: string };
+};
+
+export async function getProductBySlug(slug: string): Promise<CatalogProductDetail | null> {
+  if (!/^[a-z0-9-]{1,160}$/.test(slug)) return null;
+  const rows = await selectFromSupabase<
+    ProductRow & { presentation_size: string | null; category: { name: string; slug: string; is_active: boolean } }
+  >("products", {
+    select:
+      "id,name,slug,brand,description,price,compare_at_price,image_url,category_id,presentation_size,inventory(quantity),category:categories!inner(name,slug,is_active)",
+    ...publicProductFilters(),
+    "category.is_active": "eq.true",
+    slug: `eq.${slug}`,
+    limit: "1",
+  });
+  const row = rows[0];
+  if (!row) return null;
+  const { inventory, category, ...product } = row;
+  return {
+    ...product,
+    price: Number(product.price),
+    compare_at_price: product.compare_at_price == null ? null : Number(product.compare_at_price),
+    in_stock: stockOf(inventory) > 0,
+    category: { name: category.name, slug: category.slug },
+  };
+}
+
+/** Slugs of every publicly visible product, for the sitemap. */
+export async function getPublicProductSlugs(): Promise<string[]> {
+  const rows = await selectFromSupabase<{ slug: string }>("products", {
+    select: "slug,category:categories!inner(is_active)",
+    ...publicProductFilters(),
+    "category.is_active": "eq.true",
+    order: "slug.asc",
+    limit: "5000",
+  });
+  return rows.map((row) => row.slug);
+}
