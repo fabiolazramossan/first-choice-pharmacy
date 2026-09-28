@@ -142,3 +142,15 @@ textarea:focus-visible {
   background: linear-gradient(180deg, #7ed321, #2ec4ff);
   border-radius: 999px;
 }
+
+/* Homepage loading overlay: CSS-only fallback that fades it out and lets
+   clicks through even if JavaScript never hydrates. */
+@keyframes loading-screen-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+.loading-screen-failsafe {
+  animation: loading-screen-out 0.3s ease-in 1s forwards;
+}

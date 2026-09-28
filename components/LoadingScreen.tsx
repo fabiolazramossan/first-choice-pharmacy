@@ -7,7 +7,7 @@ export default function LoadingScreen() {
   const [show, setShow] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => setShow(false), 1100);
+    const timer = setTimeout(() => setShow(false), 700);
     return () => clearTimeout(timer);
   }, []);
 
@@ -17,8 +17,12 @@ export default function LoadingScreen() {
         <motion.div
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.5, ease: "easeInOut" }}
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-white dark:bg-midnight"
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+          aria-hidden="true"
+          // loading-screen-failsafe (globals.css) hides the overlay with CSS
+          // alone, so the page is never stuck behind it if JavaScript fails
+          // or loads slowly; it is skipped entirely for reduced motion.
+          className="loading-screen-failsafe fixed inset-0 z-[100] flex items-center justify-center bg-white motion-reduce:hidden dark:bg-midnight"
         >
           <div className="flex flex-col items-center gap-5">
             <motion.div
