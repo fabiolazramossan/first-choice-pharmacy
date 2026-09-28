@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createOrderRecord, hasOrderDatabaseConfig, OrderError } from "@/lib/orders";
+import { createRateLimiter } from "@/lib/rate-limit";
 import {
   cleanText,
   escapeHtml,
@@ -13,27 +14,13 @@ import {
 
 export const runtime = "nodejs";
 
-const requests = new Map<string, { count: number; resetAt: number }>();
-const LIMIT = 5;
-const WINDOW_MS = 15 * 60 * 1000;
+// Best-effort per-instance limits (see lib/rate-limit.ts).
+const requestsByIp = createRateLimiter({ limit: 5, windowMs: 15 * 60 * 1000 });
+const requestsByPhone = createRateLimiter({ limit: 3, windowMs: 60 * 60 * 1000 });
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 type RequestedItem = { id: string; quantity: number };
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const entry = requests.get(ip);
-
-  if (!entry || now > entry.resetAt) {
-    requests.set(ip, { count: 1, resetAt: now + WINDOW_MS });
-    return true;
-  }
-
-  if (entry.count >= LIMIT) return false;
-  entry.count += 1;
-  return true;
-}
 
 function money(value: number): string {
   return new Intl.NumberFormat("es-PR", {
@@ -61,7 +48,7 @@ export async function POST(request: Request) {
   }
 
   const ip = getClientIp(request);
-  if (!checkRateLimit(ip)) {
+  if (!requestsByIp.hit(ip)) {
     return NextResponse.json(
       { error: "Demasiadas solicitudes. Intenta nuevamente en 15 minutos." },
       { status: 429 }
@@ -121,6 +108,13 @@ export async function POST(request: Request) {
       (addressLine.length < 5 || city.length < 2 || postalCode.length < 5)
     ) {
       return NextResponse.json({ error: "Completa la dirección de entrega." }, { status: 400 });
+    }
+
+    if (!requestsByPhone.hit(customerPhone.replace(/\D/g, ""))) {
+      return NextResponse.json(
+        { error: "Ya recibimos órdenes recientes para este teléfono. Llámanos si necesitas cambiarlas." },
+        { status: 429 }
+      );
     }
 
     if (!Array.isArray(body.items) || body.items.length < 1 || body.items.length > 25) {

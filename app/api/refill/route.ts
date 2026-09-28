@@ -8,31 +8,11 @@ import {
   isTrustedBrowserRequest,
   isValidPhone,
 } from "@/lib/server-security";
+import { createRateLimiter } from "@/lib/rate-limit";
 
-const requests = new Map<string, { count: number; resetAt: number }>();
-
-const LIMIT = 3;
-const WINDOW_MS = 15 * 60 * 1000;
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const entry = requests.get(ip);
-
-  if (!entry || now > entry.resetAt) {
-    requests.set(ip, {
-      count: 1,
-      resetAt: now + WINDOW_MS,
-    });
-    return true;
-  }
-
-  if (entry.count >= LIMIT) {
-    return false;
-  }
-
-  entry.count++;
-  return true;
-}
+// Best-effort per-instance limits (see lib/rate-limit.ts).
+const requestsByIp = createRateLimiter({ limit: 3, windowMs: 15 * 60 * 1000 });
+const requestsByPhone = createRateLimiter({ limit: 3, windowMs: 60 * 60 * 1000 });
 
 export async function POST(request: Request) {
   if (!isTrustedBrowserRequest(request)) {
@@ -63,7 +43,7 @@ export async function POST(request: Request) {
 
     const ip = getClientIp(request);
 
-    if (!checkRateLimit(ip)) {
+    if (!requestsByIp.hit(ip)) {
       return NextResponse.json(
         {
           error: "Demasiadas solicitudes. Intenta nuevamente en 15 minutos.",
@@ -116,6 +96,13 @@ export async function POST(request: Request) {
         {
           status: 400,
         }
+      );
+    }
+
+    if (!requestsByPhone.hit(telefono.replace(/\D/g, ""))) {
+      return NextResponse.json(
+        { error: "Ya recibimos solicitudes para este teléfono. Te llamaremos pronto." },
+        { status: 429 }
       );
     }
 
