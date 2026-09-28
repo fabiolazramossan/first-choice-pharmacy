@@ -32,6 +32,7 @@ type Edit = {
   pan_eligibility_status: string;
   category_id: string;
   is_active: boolean;
+  expected_quantity: number;
 };
 type Category = { id: string; name: string; slug: string; is_active: boolean };
 type NewProduct = { name: string; brand: string; sku: string; upc: string; category_id: string; price: string; quantity: string };
@@ -120,6 +121,7 @@ export default function AdminProducts() {
       pan_eligibility_status: p.pan_eligibility_status || "unverified",
       category_id: p.category_id || "",
       is_active: p.is_active,
+      expected_quantity: inventoryOf(p)?.quantity ?? 0,
     });
   }
 

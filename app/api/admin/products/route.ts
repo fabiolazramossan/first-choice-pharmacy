@@ -83,25 +83,35 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "Para publicar: completa SKU, presentación/tamaño, precio mayor de $0, clasificación PAN e imagen subida a Supabase Storage." }, { status: 400 });
     }
     const headers = { apikey: ctx.key, Authorization: `Bearer ${ctx.token}`, "Content-Type": "application/json", Prefer: "return=representation" };
+    // Stock first, and only when it changed, guarded by the quantity the
+    // admin saw so concurrent edits are not silently overwritten.
+    const expected = Number(body.expected_quantity);
+    if (!Number.isInteger(expected) || expected !== quantity) {
+      const guard = Number.isInteger(expected) && expected >= 0 ? `&quantity=eq.${expected}` : "";
+      const inventoryResponse = await fetch(`${ctx.url}/rest/v1/inventory?product_id=eq.${encodeURIComponent(id)}${guard}`, {
+        method: "PATCH", headers,
+        body: JSON.stringify({ quantity, updated_at: new Date().toISOString() }),
+        cache: "no-store"
+      });
+      if (!inventoryResponse.ok) {
+        console.error("Admin inventory update failed", inventoryResponse.status);
+        return NextResponse.json({ error: "No se pudo actualizar el inventario." }, { status: 502 });
+      }
+      if (!(await inventoryResponse.json()).length) {
+        return NextResponse.json(
+          { error: guard ? "El inventario cambió mientras editabas. Recarga y vuelve a intentarlo." : "No se encontró el inventario del producto." },
+          { status: guard ? 409 : 404 }
+        );
+      }
+    }
     const productResponse = await fetch(`${ctx.url}/rest/v1/products?id=eq.${encodeURIComponent(id)}`, {
       method: "PATCH", headers,
       body: JSON.stringify({ name, brand: brand || null, sku: sku || null, price, image_url: imageUrl || null, presentation_size: presentationSize || null, pan_eligibility_status: panStatus, ...(categoryId ? { category_id: categoryId } : {}), is_active: isActive, publication_status: isActive ? "published" : "draft", updated_at: new Date().toISOString() }),
       cache: "no-store"
     });
     if (!productResponse.ok) {
-      const detail = await productResponse.text();
-      console.error("Admin product update failed", productResponse.status, detail);
+      console.error("Admin product update failed", productResponse.status, await productResponse.text());
       return NextResponse.json({ error: "No se pudo actualizar el producto." }, { status: 502 });
-    }
-    const inventoryResponse = await fetch(`${ctx.url}/rest/v1/inventory?product_id=eq.${encodeURIComponent(id)}`, {
-      method: "PATCH", headers,
-      body: JSON.stringify({ quantity, updated_at: new Date().toISOString() }),
-      cache: "no-store"
-    });
-    if (!inventoryResponse.ok) {
-      const detail = await inventoryResponse.text();
-      console.error("Admin inventory update failed", inventoryResponse.status, detail);
-      return NextResponse.json({ error: "Producto actualizado, pero falló el inventario." }, { status: 502 });
     }
     return NextResponse.json({ success: true });
   } catch {
