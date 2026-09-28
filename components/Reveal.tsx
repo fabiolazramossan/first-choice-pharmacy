@@ -18,6 +18,9 @@ export default function Reveal({
 }: RevealProps) {
   return (
     <motion.div
+      // data-reveal: content is forced visible by CSS for reduced motion
+      // (globals.css) and when JavaScript never runs (<noscript> in layout).
+      data-reveal=""
       initial={{ opacity: 0, y }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-80px" }}

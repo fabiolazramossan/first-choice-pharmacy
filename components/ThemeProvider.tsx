@@ -7,6 +7,7 @@ import {
   useState,
   ReactNode,
 } from "react";
+import { THEME_STORAGE_KEY } from "@/lib/theme";
 
 type Theme = "light" | "dark";
 
@@ -19,23 +20,21 @@ const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>("light");
-  const [mounted, setMounted] = useState(false);
 
+  // THEME_INIT_SCRIPT (lib/theme.ts, inlined in app/layout.tsx) already applied the theme before the
+  // first paint; sync React state with it.
   useEffect(() => {
-    const stored = window.localStorage.getItem("fcp-theme") as Theme | null;
-    const prefersDark = window.matchMedia(
-      "(prefers-color-scheme: dark)"
-    ).matches;
-    const initial = stored ?? (prefersDark ? "dark" : "light");
-    setTheme(initial);
-    document.documentElement.classList.toggle("dark", initial === "dark");
-    setMounted(true);
+    setTheme(document.documentElement.classList.contains("dark") ? "dark" : "light");
   }, []);
 
   const toggleTheme = () => {
     setTheme((prev) => {
       const next = prev === "light" ? "dark" : "light";
-      window.localStorage.setItem("fcp-theme", next);
+      try {
+        window.localStorage.setItem(THEME_STORAGE_KEY, next);
+      } catch {
+        // storage unavailable (private mode): theme still applies for this visit
+      }
       document.documentElement.classList.toggle("dark", next === "dark");
       return next;
     });
@@ -43,9 +42,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      <div style={{ visibility: mounted ? "visible" : "hidden" }}>
-        {children}
-      </div>
+      {children}
     </ThemeContext.Provider>
   );
 }

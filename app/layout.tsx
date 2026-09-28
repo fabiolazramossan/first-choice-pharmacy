@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import { CartProvider } from "@/components/CartProvider";
 import { SITE_URL } from "@/lib/site";
 
@@ -99,6 +100,10 @@ export default function RootLayout({
   return (
     <html lang="es" className={`${display.variable} ${body.variable}`} suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        <noscript>
+          <style>{`[data-reveal]{opacity:1!important;transform:none!important}`}</style>
+        </noscript>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
