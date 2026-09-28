@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import AddToCartButton from "@/components/AddToCartButton";
 import CatalogHeader from "@/components/CatalogHeader";
-import { getProductBySlug } from "@/lib/catalog";
+import ProductCard from "@/components/ProductCard";
+import ProductPurchase from "@/components/ProductPurchase";
+import { getProductBySlug, searchCatalog } from "@/lib/catalog";
 import { categoryEmoji, formatMoney, isTrustedProductImage } from "@/lib/catalog-display";
 import { SITE_URL } from "@/lib/site";
 
@@ -35,6 +36,10 @@ export default async function ProductoPage({ params }: Props) {
   if (!product) notFound();
 
   const emoji = categoryEmoji(product.category.slug);
+  // Related: other public products in the same category (none is fine).
+  const related = await searchCatalog({ categoryId: product.category_id, page: 1, pageSize: 4, excludeId: product.id })
+    .then((r) => r.products)
+    .catch(() => []);
   const onSale = product.compare_at_price != null && product.compare_at_price > product.price;
   const consultHref =
     "https://wa.me/17877516646?text=" +
@@ -62,10 +67,20 @@ export default async function ProductoPage({ params }: Props) {
       : {}),
   };
 
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Productos", item: `${SITE_URL}/productos` },
+      { "@type": "ListItem", position: 2, name: product.category.name, item: `${SITE_URL}/productos/${product.category.slug}` },
+      { "@type": "ListItem", position: 3, name: product.name },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <CatalogHeader />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([jsonLd, breadcrumbLd]).replace(/</g, "\\u003c") }} />
 
       <main id="contenido" className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
         <nav aria-label="Ruta de navegación" className="mb-6 text-sm text-gray-600">
@@ -99,6 +114,12 @@ export default async function ProductoPage({ params }: Props) {
               <p className="text-sm font-semibold uppercase tracking-wide text-gray-600">{product.brand}</p>
             )}
             <h1 className="mt-2 text-2xl font-extrabold text-gray-900 sm:text-3xl">{product.name}</h1>
+            <p className="mt-2 text-sm text-gray-600">
+              Categoría:{" "}
+              <Link href={`/productos/${product.category.slug}`} className="font-semibold text-green-700 hover:underline">
+                {product.category.name}
+              </Link>
+            </p>
             {product.presentation_size && <p className="mt-2 text-gray-600">{product.presentation_size}</p>}
 
             <div className="mt-6 flex items-baseline gap-3">
@@ -115,8 +136,8 @@ export default async function ProductoPage({ params }: Props) {
             </p>
 
             <div className="mt-6 max-w-sm">
-              <AddToCartButton
-                disabled={!product.in_stock}
+              <ProductPurchase
+                maxQuantity={product.max_quantity}
                 product={{ id: product.id, name: product.name, slug: product.slug, price: product.price, image_url: product.image_url }}
               />
               <a
@@ -143,6 +164,20 @@ export default async function ProductoPage({ params }: Props) {
             </p>
           </div>
         </div>
+        {related.length > 0 && (
+          <section aria-labelledby="related-heading" className="mt-14">
+            <h2 id="related-heading" className="text-xl font-extrabold text-gray-900">
+              Más en {product.category.name}
+            </h2>
+            <ul className="mt-5 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+              {related.map((item) => (
+                <li key={item.id} className="flex">
+                  <ProductCard product={item} emoji={emoji} headingLevel="h3" />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </main>
 
       <footer className="border-t border-gray-100 bg-gray-50 px-4 py-6 text-center text-sm text-gray-600">

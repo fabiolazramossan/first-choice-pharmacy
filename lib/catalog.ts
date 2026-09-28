@@ -137,6 +137,8 @@ export async function searchCatalog({
 
 export type CatalogProductDetail = CatalogProduct & {
   presentation_size: string | null;
+  /** How many one order may include now: min(stock, 10); 0 = sold out. */
+  max_quantity: number;
   category: { name: string; slug: string };
 };
 
@@ -160,6 +162,7 @@ export async function getProductBySlug(slug: string): Promise<CatalogProductDeta
     price: Number(product.price),
     compare_at_price: product.compare_at_price == null ? null : Number(product.compare_at_price),
     in_stock: stockOf(inventory) > 0,
+    max_quantity: Math.min(stockOf(inventory), 10),
     category: { name: category.name, slug: category.slug },
   };
 }
