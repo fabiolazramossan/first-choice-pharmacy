@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createOrderRecord, hasOrderDatabaseConfig, OrderError } from "@/lib/orders";
 import { createRateLimiter } from "@/lib/rate-limit";
+import { calculateTotals, pricingConfigFromEnv } from "@/lib/pricing";
+import { buildOrderConfirmationEmail, customerEmailsEnabled } from "@/lib/email/order-confirmation";
+import { BRAND } from "@/lib/data";
 import {
   cleanText,
   escapeHtml,
@@ -207,7 +210,31 @@ export async function POST(request: Request) {
       console.error("Resend order notification failed:", result.error.name, reference);
     }
 
-    return NextResponse.json({ success: true, orderReference: reference, subtotal });
+    // Customer confirmation: off unless CUSTOMER_EMAILS_ENABLED=true, and never
+    // fails the order. Product taxability is not stored yet, so IVU stays
+    // "a confirmar" even if IVU_RATE is configured.
+    const totals = calculateTotals(
+      order.items.map((item) => ({ unitPrice: item.unit_price, quantity: item.quantity, taxable: null })),
+      fulfillmentMethod as "pickup" | "delivery",
+      pricingConfigFromEnv()
+    );
+    if (customerEmail && customerEmailsEnabled()) {
+      const confirmation = buildOrderConfirmationEmail({
+        orderNumber: order.order_number,
+        customerName,
+        fulfillment: fulfillmentMethod as "pickup" | "delivery",
+        items: order.items,
+        totals,
+        pharmacyPhone: BRAND.phone,
+        pharmacyAddress: BRAND.address,
+      });
+      const sent = await new Resend(resendApiKey).emails
+        .send({ from: fromEmail, to: customerEmail, ...confirmation })
+        .catch(() => null);
+      if (!sent || sent.error) console.error("Customer confirmation email failed", reference);
+    }
+
+    return NextResponse.json({ success: true, orderReference: reference, subtotal, pending: totals.pending });
   } catch (error) {
     if (error instanceof OrderError) {
       return NextResponse.json({ error: error.message }, { status: error.status });

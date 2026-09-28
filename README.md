@@ -37,6 +37,8 @@ Copia `.env.example` y configura:
 - `PHARMACY_EMAIL`: buzón que recibe pedidos y solicitudes de refill.
 - `REFILL_FROM_EMAIL` y `ORDER_FROM_EMAIL`: remitentes verificados en Resend.
 - `SUPABASE_SECRET_KEY`: clave secreta de Supabase, solo para el servidor. `/api/orders` la usa para llamar la función `create_order()` (ver `supabase/README.md`). Nunca usar el prefijo `NEXT_PUBLIC_`.
+- `CUSTOMER_EMAILS_ENABLED`: debe ser `true` para enviar confirmación al cliente (apagado por defecto).
+- `IVU_RATE`, `DELIVERY_FEE`, `FREE_DELIVERY_THRESHOLD`: vacíos por defecto; no se inventan tarifas. Mientras no estén configurados, el IVU y el delivery aparecen como “a confirmar”. `IVU_RATE` es una fracción (0.07 = 7%). La tributación por producto aún no existe en la base de datos, así que el IVU sigue “a confirmar” hasta añadirla.
 - `ORDERS_ENABLED`: debe ser exactamente `true` para aceptar órdenes en línea. Mientras no esté configurado, `/api/orders` responde 503.
 
 ## Verificación antes de producción
