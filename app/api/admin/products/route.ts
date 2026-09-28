@@ -1,16 +1,64 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-auth";
+import { parsePage, parseSearchTerms, productSearchFilter } from "@/lib/search";
 
-export async function GET() {
+const ADMIN_PAGE_SIZE = 50;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const PRODUCT_FIELDS =
+  "id,name,brand,sku,upc,price,image_url,presentation_size,pan_eligibility_status,is_active,is_featured,publication_status,category_id";
+
+// GET /api/admin/products?q=&status=all|published|draft|inactive&category=<uuid>&stock=all|in|out&page=1
+export async function GET(request: Request) {
   const { ctx, error } = await requireAdmin();
   if (error) return error;
-  const response=await fetch(`${ctx.url}/rest/v1/products?select=id,name,brand,sku,upc,price,image_url,presentation_size,pan_eligibility_status,is_active,is_featured,publication_status,inventory(quantity,low_stock_threshold)&order=name.asc&limit=500`,{headers:{apikey:ctx.key,Authorization:`Bearer ${ctx.token}`},cache:"no-store"});
-  if(!response.ok) return NextResponse.json({error:"No se pudieron cargar los productos."},{status:502});
-  const categoriesResponse=await fetch(`${ctx.url}/rest/v1/categories?select=id,name,slug,is_active&order=sort_order.asc,name.asc`,{headers:{apikey:ctx.key,Authorization:`Bearer ${ctx.token}`},cache:"no-store"});
-  const categories=categoriesResponse.ok?await categoriesResponse.json():[];
-  return NextResponse.json({products:await response.json(),categories});
-}
 
+  const params = new URL(request.url).searchParams;
+  const page = parsePage(params.get("page"));
+  const status = params.get("status");
+  const stock = params.get("stock");
+  const category = params.get("category") ?? "";
+
+  const query = new URLSearchParams({ order: "name.asc,id.asc" });
+  // !inner lets stock filters on the embedded inventory row filter products.
+  const inventoryEmbed = stock === "in" || stock === "out" ? "inventory!inner" : "inventory";
+  query.set("select", `${PRODUCT_FIELDS},${inventoryEmbed}(quantity,low_stock_threshold)`);
+  if (status === "published") {
+    query.set("is_active", "eq.true");
+    query.set("publication_status", "eq.published");
+  } else if (status === "draft") {
+    query.set("publication_status", "neq.published");
+  } else if (status === "inactive") {
+    query.set("is_active", "eq.false");
+  }
+  if (stock === "out") query.set("inventory.quantity", "eq.0");
+  if (stock === "in") query.set("inventory.quantity", "gt.0");
+  if (UUID.test(category)) query.set("category_id", `eq.${category}`);
+  const terms = parseSearchTerms(params.get("q"));
+  if (terms.length) query.set("and", productSearchFilter(terms));
+  query.set("offset", String((page - 1) * ADMIN_PAGE_SIZE));
+  query.set("limit", String(ADMIN_PAGE_SIZE));
+
+  const headers = { apikey: ctx.key, Authorization: `Bearer ${ctx.token}` };
+  const [response, categoriesResponse] = await Promise.all([
+    fetch(`${ctx.url}/rest/v1/products?${query}`, { headers: { ...headers, Prefer: "count=exact" }, cache: "no-store" }),
+    fetch(`${ctx.url}/rest/v1/categories?select=id,name,slug,description,sort_order,is_active&order=sort_order.asc,name.asc`, { headers, cache: "no-store" }),
+  ]);
+  if (!response.ok && response.status !== 416) {
+    console.error("Admin product list failed", response.status);
+    return NextResponse.json({ error: "No se pudieron cargar los productos." }, { status: 502 });
+  }
+  const total = Number(response.headers.get("content-range")?.split("/")[1]) || 0;
+  const products = response.status === 416 ? [] : await response.json();
+  const categories = categoriesResponse.ok ? await categoriesResponse.json() : [];
+  return NextResponse.json({
+    products,
+    categories,
+    total,
+    page,
+    pageSize: ADMIN_PAGE_SIZE,
+    pageCount: Math.max(1, Math.ceil(total / ADMIN_PAGE_SIZE)),
+  });
+}
 
 export async function PATCH(request: Request) {
   const { ctx, error } = await requireAdmin(request);
@@ -27,6 +75,7 @@ export async function PATCH(request: Request) {
     const price = Number(body.price);
     const quantity = Number(body.quantity);
     const isActive = body.is_active === true;
+    const categoryId = typeof body.category_id === "string" && UUID.test(body.category_id) ? body.category_id : null;
     if (!id || !name || !Number.isFinite(price) || price < 0 || !Number.isInteger(quantity) || quantity < 0) {
       return NextResponse.json({ error: "Datos del producto inválidos." }, { status: 400 });
     }
@@ -36,7 +85,7 @@ export async function PATCH(request: Request) {
     const headers = { apikey: ctx.key, Authorization: `Bearer ${ctx.token}`, "Content-Type": "application/json", Prefer: "return=representation" };
     const productResponse = await fetch(`${ctx.url}/rest/v1/products?id=eq.${encodeURIComponent(id)}`, {
       method: "PATCH", headers,
-      body: JSON.stringify({ name, brand: brand || null, sku: sku || null, price, image_url: imageUrl || null, presentation_size: presentationSize || null, pan_eligibility_status: panStatus, is_active: isActive, publication_status: isActive ? "published" : "draft", updated_at: new Date().toISOString() }),
+      body: JSON.stringify({ name, brand: brand || null, sku: sku || null, price, image_url: imageUrl || null, presentation_size: presentationSize || null, pan_eligibility_status: panStatus, ...(categoryId ? { category_id: categoryId } : {}), is_active: isActive, publication_status: isActive ? "published" : "draft", updated_at: new Date().toISOString() }),
       cache: "no-store"
     });
     if (!productResponse.ok) {

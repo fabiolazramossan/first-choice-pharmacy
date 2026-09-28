@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   accentInsensitivePattern,
   foldAccents,
+  productSearchFilter,
   parsePage,
   parseSearchTerms,
 } from "../lib/search.ts";
@@ -64,4 +65,11 @@ test("parsePage clamps to a safe range", () => {
   assert.equal(parsePage("1.5"), 1);
   assert.equal(parsePage("999999"), 1000);
   assert.equal(parsePage(undefined), 1);
+});
+
+test("productSearchFilter builds one and() group with an or() per term", () => {
+  const filter = productSearchFilter(parseSearchTerms("Tylenol 500"));
+  assert.ok(filter.startsWith("(or(name.imatch.") && filter.endsWith("*))"));
+  assert.equal(filter.match(/or\(/g).length, 2);
+  assert.match(filter, /sku\.ilike\.\*500\*/);
 });

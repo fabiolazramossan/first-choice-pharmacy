@@ -47,3 +47,19 @@ export function parsePage(raw: string | null | undefined): number {
   const page = Number(raw);
   return Number.isInteger(page) && page >= 1 ? Math.min(page, MAX_PAGE) : 1;
 }
+
+/**
+ * PostgREST `and` filter: every term must match name, brand, SKU or UPC. Name
+ * and brand ignore accents ("acetaminofen" finds "Acetaminofén"). Quoted
+ * values are only unquoted by PostgREST inside and()/or() groups, which is
+ * always the case here. Pass terms from parseSearchTerms only.
+ */
+export function productSearchFilter(terms: string[]): string {
+  return `(${terms
+    .map((t) => {
+      const pattern = accentInsensitivePattern(t);
+      const plain = foldAccents(t);
+      return `or(name.imatch."${pattern}",brand.imatch."${pattern}",sku.ilike.*${plain}*,upc.ilike.*${plain}*)`;
+    })
+    .join(",")})`;
+}

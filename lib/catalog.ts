@@ -1,6 +1,6 @@
 // Server-side catalog queries (imported only from server components and route handlers).
 import { selectFromSupabase, selectPageFromSupabase } from "@/lib/supabase";
-import { accentInsensitivePattern, foldAccents, parseSearchTerms } from "@/lib/search";
+import { parseSearchTerms, productSearchFilter } from "@/lib/search";
 
 export { parsePage } from "@/lib/search";
 
@@ -95,17 +95,7 @@ export async function searchCatalog({
 
   const terms = parseSearchTerms(search);
   if (terms.length) {
-    // Every term must match at least one of name, brand, SKU or UPC. Name and
-    // brand ignore accents ("acetaminofen" finds "Acetaminofén"). Quoted
-    // values are only unquoted by PostgREST inside and()/or() groups, which
-    // is always the case here.
-    query.and = `(${terms
-      .map((t) => {
-        const pattern = accentInsensitivePattern(t);
-        const plain = foldAccents(t);
-        return `or(name.imatch."${pattern}",brand.imatch."${pattern}",sku.ilike.*${plain}*,upc.ilike.*${plain}*)`;
-      })
-      .join(",")})`;
+    query.and = productSearchFilter(terms);
   }
 
   const { rows, total } = await selectPageFromSupabase<ProductRow>("products", query, {
