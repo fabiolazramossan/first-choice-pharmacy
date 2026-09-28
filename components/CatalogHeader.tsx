@@ -15,7 +15,7 @@ export default function CatalogHeader() {
           <Image src="/logo.png" alt="" width={140} height={46} className="h-10 w-auto object-contain sm:h-11" />
         </Link>
         <nav aria-label="Catálogo" className="flex items-center gap-3 sm:gap-4">
-          <Link href="/productos" className="text-sm font-semibold text-green-700 hover:underline">
+          <Link href="/productos" className="py-2.5 text-sm font-semibold text-green-700 hover:underline">
             Todos los productos
           </Link>
           <Link

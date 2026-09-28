@@ -162,7 +162,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 pb-16">
+    <main id="contenido" className="min-h-screen bg-gray-50 pb-16">
       <header className="border-b border-gray-100 bg-white px-4 py-4">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <Link href="/">
@@ -424,7 +424,7 @@ function FulfillmentOption({
 }) {
   return (
     <label
-      className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition ${
+      className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-green-600 has-[:focus-visible]:ring-offset-2 ${
         checked ? "border-green-500 bg-green-50" : "border-gray-200 hover:border-green-200"
       }`}
     >

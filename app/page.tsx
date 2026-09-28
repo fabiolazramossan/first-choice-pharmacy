@@ -20,7 +20,7 @@ export default function Home() {
     <>
       <LoadingScreen />
       <Navbar />
-      <main>
+      <main id="contenido">
         <Hero />
         <Services />
         <RefillForm />

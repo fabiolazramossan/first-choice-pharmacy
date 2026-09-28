@@ -142,51 +142,55 @@ export default function RefillForm() {
                   className="space-y-4"
                 >
                   <div>
-                    <label className="mb-1.5 block text-sm font-semibold text-gray-700">
+                    <label htmlFor="refill-nombre" className="mb-1.5 block text-sm font-semibold text-gray-700">
                       Nombre completo *
                     </label>
                     <input
                       required
+                      id="refill-nombre"
                       name="nombre"
                       value={form.nombre}
                       onChange={handleChange}
                       type="text"
                       maxLength={100}
                       placeholder="Tu nombre"
-                      className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm placeholder:text-gray-400 focus:border-green-400 focus:outline-none"
+                      className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm placeholder:text-gray-500 focus:border-green-600 focus:outline-none focus:ring-2 focus:ring-green-600/30"
                     />
                   </div>
 
                   <div>
-                    <label className="mb-1.5 block text-sm font-semibold text-gray-700">
+                    <label htmlFor="refill-telefono" className="mb-1.5 block text-sm font-semibold text-gray-700">
                       Número de teléfono *
                     </label>
                     <input
                       required
+                      id="refill-telefono"
                       name="telefono"
                       value={form.telefono}
                       onChange={handleChange}
                       type="tel"
                       maxLength={20}
                       placeholder="(787) 000-0000"
-                      className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm placeholder:text-gray-400 focus:border-green-400 focus:outline-none"
+                      className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm placeholder:text-gray-500 focus:border-green-600 focus:outline-none focus:ring-2 focus:ring-green-600/30"
                     />
                   </div>
 
                   <div>
-                    <label className="mb-1.5 block text-sm font-semibold text-gray-700">
+                    <label htmlFor="refill-mensaje" className="mb-1.5 block text-sm font-semibold text-gray-700">
                       Mensaje (opcional)
                     </label>
                     <textarea
+                      id="refill-mensaje"
+                      aria-describedby="refill-mensaje-ayuda"
                       name="mensaje"
                       value={form.mensaje}
                       onChange={handleChange}
                       maxLength={200}
                       rows={3}
                       placeholder="Ej: Necesito refill, prefiero delivery"
-                      className="w-full resize-none rounded-2xl border border-gray-200 px-4 py-3 text-sm placeholder:text-gray-400 focus:border-green-400 focus:outline-none"
+                      className="w-full resize-none rounded-2xl border border-gray-200 px-4 py-3 text-sm placeholder:text-gray-500 focus:border-green-600 focus:outline-none focus:ring-2 focus:ring-green-600/30"
                     />
-                    <p className="mt-1 text-xs text-gray-400">
+                    <p id="refill-mensaje-ayuda" className="mt-1 text-xs text-gray-500">
                       No incluyas números de receta ni información médica.
                     </p>
                   </div>
@@ -205,7 +209,7 @@ export default function RefillForm() {
                   </div>
 
                   {status === "error" && (
-                    <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-600">
+                    <p role="alert" className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700">
                       Hubo un error. Intenta de nuevo o llámanos al {BRAND.phone}.
                     </p>
                   )}
@@ -224,7 +228,7 @@ export default function RefillForm() {
                     )}
                   </button>
 
-                  <p className="text-center text-xs text-gray-400">
+                  <p className="text-center text-xs text-gray-500">
                     Al enviar aceptas nuestra{" "}
                     <a href="/privacidad" className="underline hover:text-gray-600">
                       Política de Privacidad

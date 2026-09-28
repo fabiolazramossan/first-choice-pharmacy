@@ -16,7 +16,7 @@ export default function CartPage() {
   const { items, subtotal, updateQuantity, removeItem, clearCart } = useCart();
 
   return (
-    <main className="min-h-screen bg-gray-50 px-4 py-10 sm:px-6">
+    <main id="contenido" className="min-h-screen bg-gray-50 px-4 py-10 sm:px-6">
       <div className="mx-auto max-w-5xl">
         <div className="mb-8 flex items-center justify-between gap-4">
           <div>

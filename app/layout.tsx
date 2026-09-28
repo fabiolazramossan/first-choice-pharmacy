@@ -105,6 +105,12 @@ export default function RootLayout({
         />
       </head>
       <body>
+        <a
+          href="#contenido"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-green-700 focus:px-5 focus:py-3 focus:text-sm focus:font-bold focus:text-white"
+        >
+          Saltar al contenido
+        </a>
         <ThemeProvider>
           <CartProvider>{children}</CartProvider>
         </ThemeProvider>

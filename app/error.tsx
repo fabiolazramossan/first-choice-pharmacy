@@ -16,7 +16,7 @@ export default function Error({
   }, [error]);
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-white px-4 py-16">
+    <main id="contenido" className="flex min-h-screen items-center justify-center bg-white px-4 py-16">
       <div className="max-w-md text-center" role="alert">
         <h1 className="text-3xl font-extrabold text-gray-900">Algo salió mal</h1>
         <p className="mt-3 text-gray-600">

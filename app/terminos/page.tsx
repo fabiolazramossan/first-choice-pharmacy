@@ -22,7 +22,7 @@ export default function Terminos() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl px-4 py-14 sm:px-6">
+      <main id="contenido" className="mx-auto max-w-4xl px-4 py-14 sm:px-6">
         <div className="mb-10 text-center">
           <span className="inline-block rounded-full bg-blue-100 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-blue-700">
             Términos
