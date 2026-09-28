@@ -84,6 +84,13 @@ read it; nobody can edit or delete it through the API. Adds a nullable
 `inventory.last_adjustment_reason` column the admin UI can use to attach a
 reason. No existing rows change. Rollback deletes the history (export first).
 
+### `proposed/20260928120300_product_ivu_taxable.sql`
+
+Adds nullable `products.ivu_taxable` (NULL = not classified). Only a
+per-product flag; no tax rate is stored or assumed. Once applied and
+classified, `/api/orders` can pass it to `calculateTotals` (today it passes
+`null`, so IVU stays "a confirmar").
+
 ## 4. Applying (only after approval)
 
 1. Verify the assumptions above; adjust the SQL if needed.

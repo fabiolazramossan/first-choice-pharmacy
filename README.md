@@ -52,6 +52,8 @@ Copia `.env.example` y configura:
 
 ## Seguridad y privacidad
 
+Riesgos de privacidad/cumplimiento pendientes de revisión: ver `docs/PRIVACY-COMPLIANCE.md`.
+
 - Las rutas de pedido y refill aplican validación, límites básicos, honeypot y comprobación de origen.
 - No se solicitan números de receta, diagnósticos ni documentos médicos en la web.
 - Supabase usa una clave pública con Row Level Security; nunca se debe exponer una service-role key en el navegador.
