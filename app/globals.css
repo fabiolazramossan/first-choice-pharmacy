@@ -183,3 +183,14 @@ textarea:focus-visible {
     transform: none !important;
   }
 }
+
+/* Consistent keyboard focus indicator. Components that style their own
+   focus ring (focus:outline-none + ring utilities) keep theirs, since those
+   class selectors are more specific. */
+:focus-visible {
+  outline: 2px solid #15803d;
+  outline-offset: 2px;
+}
+.dark :focus-visible {
+  outline-color: #2ec4ff;
+}
