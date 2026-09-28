@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-auth";
 import { isUuid, readJsonObject } from "@/lib/server-security";
+import { missingForPublication, productImagePrefix } from "@/lib/product-readiness";
 import { parsePage, parseSearchTerms, productSearchFilter } from "@/lib/search";
 
 const ADMIN_PAGE_SIZE = 50;
 const PRODUCT_FIELDS =
-  "id,name,brand,sku,upc,price,image_url,presentation_size,pan_eligibility_status,is_active,is_featured,publication_status,category_id";
+  "id,name,brand,sku,upc,description,price,compare_at_price,image_url,presentation_size,pan_eligibility_status,is_active,is_featured,publication_status,category_id";
 
 // GET /api/admin/products?q=&status=all|published|draft|inactive&category=<uuid>&stock=all|in|out&page=1
 export async function GET(request: Request) {
@@ -73,15 +74,33 @@ export async function PATCH(request: Request) {
     const imageUrl = typeof body.image_url === "string" ? body.image_url.trim().slice(0, 500) : "";
     const presentationSize = typeof body.presentation_size === "string" ? body.presentation_size.trim().slice(0, 120) : "";
     const panStatus = typeof body.pan_eligibility_status === "string" && ["eligible","ineligible","unverified"].includes(body.pan_eligibility_status) ? body.pan_eligibility_status : "unverified";
-    const price = Number(body.price);
+    const toCents = (value: number) => Math.round(value * 100) / 100;
+    const price = toCents(Number(body.price));
     const quantity = Number(body.quantity);
     const isActive = body.is_active === true;
+    const isFeatured = body.is_featured === true;
     const categoryId = isUuid(body.category_id) ? body.category_id : null;
+    const description = typeof body.description === "string" ? body.description.trim().slice(0, 2000) : "";
+    const upc = typeof body.upc === "string" ? body.upc.trim() : "";
+    const compareRaw = body.compare_at_price;
+    const compareAtPrice = compareRaw === null || compareRaw === "" || compareRaw === undefined ? null : toCents(Number(compareRaw));
     if (!id || !name || !Number.isFinite(price) || price < 0 || !Number.isInteger(quantity) || quantity < 0) {
       return NextResponse.json({ error: "Datos del producto inválidos." }, { status: 400 });
     }
-    if (isActive && (!sku || !presentationSize || price <= 0 || !imageUrl.startsWith(`${ctx.url}/storage/v1/object/public/`) || !["eligible","ineligible"].includes(panStatus))) {
-      return NextResponse.json({ error: "Para publicar: completa SKU, presentación/tamaño, precio mayor de $0, clasificación PAN e imagen subida a Supabase Storage." }, { status: 400 });
+    if (upc && !/^\d{8,14}$/.test(upc)) {
+      return NextResponse.json({ error: "El UPC debe tener entre 8 y 14 dígitos." }, { status: 400 });
+    }
+    if (compareAtPrice !== null && (!Number.isFinite(compareAtPrice) || compareAtPrice < 0)) {
+      return NextResponse.json({ error: "El precio anterior no es válido." }, { status: 400 });
+    }
+    if (isActive) {
+      const missing = missingForPublication(
+        { name, sku, presentation_size: presentationSize, price, pan_eligibility_status: panStatus, image_url: imageUrl, category_id: categoryId },
+        productImagePrefix(ctx.url)
+      );
+      if (missing.length) {
+        return NextResponse.json({ error: `Para publicar falta: ${missing.join(", ")}.`, missing }, { status: 400 });
+      }
     }
     const headers = { apikey: ctx.key, Authorization: `Bearer ${ctx.token}`, "Content-Type": "application/json", Prefer: "return=representation" };
     // Stock first, and only when it changed, guarded by the quantity the
@@ -107,11 +126,14 @@ export async function PATCH(request: Request) {
     }
     const productResponse = await fetch(`${ctx.url}/rest/v1/products?id=eq.${encodeURIComponent(id)}`, {
       method: "PATCH", headers,
-      body: JSON.stringify({ name, brand: brand || null, sku: sku || null, price, image_url: imageUrl || null, presentation_size: presentationSize || null, pan_eligibility_status: panStatus, ...(categoryId ? { category_id: categoryId } : {}), is_active: isActive, publication_status: isActive ? "published" : "draft", updated_at: new Date().toISOString() }),
+      body: JSON.stringify({ name, brand: brand || null, sku: sku || null, upc: upc || null, description: description || null, price, compare_at_price: compareAtPrice, image_url: imageUrl || null, presentation_size: presentationSize || null, pan_eligibility_status: panStatus, ...(categoryId ? { category_id: categoryId } : {}), is_active: isActive, is_featured: isFeatured, publication_status: isActive ? "published" : "draft", updated_at: new Date().toISOString() }),
       cache: "no-store"
     });
     if (!productResponse.ok) {
       console.error("Admin product update failed", productResponse.status, await productResponse.text());
+      if (productResponse.status === 409) {
+        return NextResponse.json({ error: "Ese SKU o UPC ya lo usa otro producto." }, { status: 409 });
+      }
       return NextResponse.json({ error: "No se pudo actualizar el producto." }, { status: 502 });
     }
     return NextResponse.json({ success: true });
@@ -137,10 +159,13 @@ export async function POST(request: Request) {
     const sku = typeof body.sku === "string" ? body.sku.trim().slice(0, 80) : "";
     const upc = typeof body.upc === "string" ? body.upc.trim().slice(0, 80) : "";
     const categoryId = isUuid(body.category_id) ? body.category_id : "";
-    const price = Number(body.price);
+    const price = Math.round(Number(body.price) * 100) / 100;
     const quantity = Number(body.quantity);
     if (!name || !categoryId || !Number.isFinite(price) || price < 0 || !Number.isInteger(quantity) || quantity < 0) {
       return NextResponse.json({ error: "Completa nombre, categoría, precio y stock correctamente." }, { status: 400 });
+    }
+    if (upc && !/^\d{8,14}$/.test(upc)) {
+      return NextResponse.json({ error: "El UPC debe tener entre 8 y 14 dígitos." }, { status: 400 });
     }
     const headers = { apikey: ctx.key, Authorization: `Bearer ${ctx.token}`, "Content-Type": "application/json", Prefer: "return=representation" };
     // New products always start as drafts: publication readiness (image, SKU,
@@ -148,7 +173,8 @@ export async function POST(request: Request) {
     const slug = `${slugify(name)}-${crypto.randomUUID().slice(0,8)}`;
     const productResponse = await fetch(`${ctx.url}/rest/v1/products`, {
       method: "POST", headers,
-      body: JSON.stringify({ name, slug, brand: brand || null, sku: sku || null, upc: upc || null, category_id: categoryId, price, is_active: false, publication_status: "draft", requires_prescription: false }),
+      // Always a draft, never featured, never Rx — regardless of what the client sends.
+      body: JSON.stringify({ name, slug, brand: brand || null, sku: sku || null, upc: upc || null, category_id: categoryId, price, is_active: false, is_featured: false, publication_status: "draft", requires_prescription: false }),
       cache: "no-store"
     });
     if (!productResponse.ok) {

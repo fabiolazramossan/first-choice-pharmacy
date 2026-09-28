@@ -2,6 +2,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { productImagePrefix, readinessChecks } from "@/lib/product-readiness";
+
+// Public Supabase URL (not a secret) — used only to show the publish checklist;
+// the API enforces the same rules server-side.
+const IMAGE_PREFIX = productImagePrefix(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "");
 
 type Inventory = { quantity: number; low_stock_threshold: number };
 type Product = {
@@ -10,7 +15,9 @@ type Product = {
   brand: string | null;
   sku: string | null;
   upc: string | null;
+  description: string | null;
   price: number;
+  compare_at_price: number | null;
   image_url: string | null;
   presentation_size: string | null;
   pan_eligibility_status: string;
@@ -25,13 +32,17 @@ type Edit = {
   name: string;
   brand: string;
   sku: string;
+  upc: string;
+  description: string;
   price: string;
+  compare_at_price: string;
   quantity: string;
   image_url: string;
   presentation_size: string;
   pan_eligibility_status: string;
   category_id: string;
   is_active: boolean;
+  is_featured: boolean;
   expected_quantity: number;
 };
 type Category = { id: string; name: string; slug: string; is_active: boolean };
@@ -114,13 +125,17 @@ export default function AdminProducts() {
       name: p.name,
       brand: p.brand || "",
       sku: p.sku || "",
+      upc: p.upc || "",
+      description: p.description || "",
       price: String(p.price),
+      compare_at_price: p.compare_at_price == null ? "" : String(p.compare_at_price),
       quantity: String(inventoryOf(p)?.quantity ?? 0),
       image_url: p.image_url || "",
       presentation_size: p.presentation_size || "",
       pan_eligibility_status: p.pan_eligibility_status || "unverified",
       category_id: p.category_id || "",
       is_active: p.is_active,
+      is_featured: p.is_featured,
       expected_quantity: inventoryOf(p)?.quantity ?? 0,
     });
   }
@@ -242,7 +257,7 @@ export default function AdminProducts() {
 
         {error && <p role="alert" className="mt-6 rounded-xl bg-red-500/10 p-4 text-red-300">{error}</p>}
 
-        <div className="mt-6 overflow-x-auto rounded-2xl border border-white/10" aria-busy={loading}>
+        <div className="relative mt-6 overflow-x-auto rounded-2xl border border-white/10" aria-busy={loading}>
           <table className="w-full min-w-[1000px] text-left text-sm">
             <thead className="bg-white/5 text-white/60">
               <tr>
@@ -267,7 +282,12 @@ export default function AdminProducts() {
                 return (
                   <tr key={p.id} className="border-t border-white/10">
                     <td className="p-4">
-                      <p className="font-semibold">{p.name}</p>
+                      <p className="font-semibold">
+                        {p.name}
+                        {p.is_featured && (
+                          <span className="ml-2 rounded-full bg-amber-400/15 px-2 py-0.5 text-xs font-semibold text-amber-300">★ Destacado</span>
+                        )}
+                      </p>
                       <p className="text-xs text-white/50">{p.brand || "Sin marca"}</p>
                     </td>
                     <td className="p-4 text-white/70">{categoryName(p.category_id)}</td>
@@ -328,7 +348,7 @@ export default function AdminProducts() {
           <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-white/10 bg-slate-900 p-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold">Editar producto</h2>
-              <button onClick={() => setEdit(null)} aria-label="Cerrar" className="text-white/60">✕</button>
+              <button onClick={() => { setEdit(null); setError(""); }} aria-label="Cerrar" className="text-white/60">✕</button>
             </div>
             <div className="mt-6 grid gap-4">
               <label className="text-sm">Nombre<input value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} className={input} /></label>
@@ -342,10 +362,24 @@ export default function AdminProducts() {
                   ))}
                 </select>
               </label>
-              <label className="text-sm">SKU *<input value={edit.sku} onChange={(e) => setEdit({ ...edit, sku: e.target.value })} className={input} /></label>
+              <div className="grid grid-cols-2 gap-4">
+                <label className="text-sm">SKU *<input value={edit.sku} onChange={(e) => setEdit({ ...edit, sku: e.target.value })} className={input} /></label>
+                <label className="text-sm">UPC<input inputMode="numeric" value={edit.upc} onChange={(e) => setEdit({ ...edit, upc: e.target.value })} placeholder="8–14 dígitos" className={input} /></label>
+              </div>
               <label className="text-sm">
                 Presentación / tamaño *
                 <input value={edit.presentation_size} onChange={(e) => setEdit({ ...edit, presentation_size: e.target.value })} placeholder="Ej. 12 oz, 24 tabletas" className={input} />
+              </label>
+              <label className="text-sm">
+                Descripción (opcional, visible en la tienda)
+                <textarea
+                  rows={4}
+                  maxLength={2000}
+                  value={edit.description}
+                  onChange={(e) => setEdit({ ...edit, description: e.target.value })}
+                  placeholder="Usa solo información del empaque. No incluyas afirmaciones médicas."
+                  className={`${input} resize-y`}
+                />
               </label>
               <label className="text-sm">
                 Clasificación PAN *
@@ -380,16 +414,29 @@ export default function AdminProducts() {
                 )}
               </label>
               <div className="grid grid-cols-2 gap-4">
-                <label className="text-sm">Precio<input type="number" min="0" step="0.01" value={edit.price} onChange={(e) => setEdit({ ...edit, price: e.target.value })} className={input} /></label>
+                <label className="text-sm">Precio *<input type="number" min="0" step="0.01" value={edit.price} onChange={(e) => setEdit({ ...edit, price: e.target.value })} className={input} /></label>
                 <label className="text-sm">Stock<input type="number" min="0" step="1" value={edit.quantity} onChange={(e) => setEdit({ ...edit, quantity: e.target.value })} className={input} /></label>
               </div>
+              <label className="text-sm">
+                Precio anterior (opcional)
+                <input type="number" min="0" step="0.01" value={edit.compare_at_price} onChange={(e) => setEdit({ ...edit, compare_at_price: e.target.value })} placeholder="Solo si hay rebaja real" className={input} />
+                <span className="mt-1 block text-xs text-white/60">Se muestra tachado solo si es mayor que el precio actual.</span>
+              </label>
+              <ReadinessList edit={edit} />
               <label className="flex items-center gap-3 rounded-xl border border-white/10 p-4">
                 <input type="checkbox" checked={edit.is_active} onChange={(e) => setEdit({ ...edit, is_active: e.target.checked })} />
-                <span>Producto activo / publicado</span>
+                <span>Publicar en la tienda</span>
               </label>
-              <p className="text-xs text-white/60">Para publicar, Supabase exige SKU, presentación, precio mayor de $0, PAN clasificado e imagen alojada en Supabase Storage.</p>
+              <label className="flex items-start gap-3 rounded-xl border border-white/10 p-4">
+                <input type="checkbox" className="mt-1" checked={edit.is_featured} onChange={(e) => setEdit({ ...edit, is_featured: e.target.checked })} />
+                <span>
+                  Destacar en la página principal
+                  <span className="block text-xs text-white/60">Solo aparece en “Productos destacados” mientras esté publicado.</span>
+                </span>
+              </label>
+              {error && <p role="alert" className="rounded-xl bg-red-500/10 p-3 text-sm text-red-300">{error}</p>}
               <div className="flex justify-end gap-3">
-                <button onClick={() => setEdit(null)} className="rounded-xl border border-white/15 px-4 py-3">Cancelar</button>
+                <button onClick={() => { setEdit(null); setError(""); }} className="rounded-xl border border-white/15 px-4 py-3">Cancelar</button>
                 <button onClick={save} disabled={saving} className="rounded-xl bg-emerald-500 px-5 py-3 font-semibold text-slate-950 disabled:opacity-60">
                   {saving ? "Guardando…" : "Guardar cambios"}
                 </button>
@@ -404,7 +451,7 @@ export default function AdminProducts() {
           <div className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl border border-white/10 bg-slate-900 p-6">
             <div className="flex justify-between">
               <h2 className="text-xl font-bold">Añadir producto</h2>
-              <button onClick={() => setDraft(null)} aria-label="Cerrar" className="text-white/60">✕</button>
+              <button onClick={() => { setDraft(null); setError(""); }} aria-label="Cerrar" className="text-white/60">✕</button>
             </div>
             <div className="mt-6 grid gap-4">
               <label className="text-sm">Nombre *<input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} className={input} /></label>
@@ -429,8 +476,9 @@ export default function AdminProducts() {
                 El producto se crea como borrador. Para publicarlo, ábrelo con “Editar” y completa imagen, SKU, presentación y clasificación PAN.
               </p>
               <p className="text-xs text-white/60">Los medicamentos con receta no se crean desde este formulario de e-commerce.</p>
+              {error && <p role="alert" className="rounded-xl bg-red-500/10 p-3 text-sm text-red-300">{error}</p>}
               <div className="flex justify-end gap-3">
-                <button onClick={() => setDraft(null)} className="rounded-xl border border-white/15 px-4 py-3">Cancelar</button>
+                <button onClick={() => { setDraft(null); setError(""); }} className="rounded-xl border border-white/15 px-4 py-3">Cancelar</button>
                 <button onClick={create} disabled={creating} className="rounded-xl bg-emerald-500 px-5 py-3 font-semibold text-slate-950 disabled:opacity-60">
                   {creating ? "Creando…" : "Crear producto"}
                 </button>
@@ -440,5 +488,34 @@ export default function AdminProducts() {
         </div>
       )}
     </main>
+  );
+}
+
+function ReadinessList({ edit }: { edit: Edit }) {
+  const checks = readinessChecks(
+    {
+      name: edit.name,
+      sku: edit.sku,
+      presentation_size: edit.presentation_size,
+      price: Number(edit.price),
+      pan_eligibility_status: edit.pan_eligibility_status,
+      image_url: edit.image_url,
+      category_id: edit.category_id || null,
+    },
+    IMAGE_PREFIX
+  );
+  const ready = checks.every((c) => c.ok);
+  return (
+    <div className={`rounded-xl border p-4 text-sm ${ready ? "border-emerald-400/30 bg-emerald-500/5" : "border-amber-400/30 bg-amber-500/5"}`}>
+      <p className="font-semibold">{ready ? "Listo para publicar" : "Para publicar falta:"}</p>
+      <ul className="mt-2 space-y-1">
+        {checks.map((c) => (
+          <li key={c.key} className={c.ok ? "text-emerald-300" : "text-amber-200"}>
+            <span aria-hidden="true">{c.ok ? "✓" : "○"}</span> {c.label}
+            <span className="sr-only">{c.ok ? " (completo)" : " (pendiente)"}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
