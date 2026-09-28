@@ -73,3 +73,34 @@ test("productSearchFilter builds one and() group with an or() per term", () => {
   assert.equal(filter.match(/or\(/g).length, 2);
   assert.match(filter, /sku\.ilike\.\*500\*/);
 });
+
+test("parseSort falls back to name ordering for unknown values", async () => {
+  const { parseSort, CATALOG_SORTS } = await import("../lib/search.ts");
+  assert.equal(parseSort("precio-asc"), "precio-asc");
+  assert.equal(parseSort("price.desc;drop"), "nombre");
+  assert.equal(parseSort("__proto__"), "nombre");
+  assert.equal(parseSort(null), "nombre");
+  assert.match(CATALOG_SORTS["precio-desc"].order, /^price\.desc/);
+});
+
+test("readCatalogParams normalizes URL parameters", async () => {
+  const { readCatalogParams } = await import("../lib/search.ts");
+  assert.deepEqual(readCatalogParams({ q: ["  tylenol ", "x"], orden: "precio-asc", disponibles: "1", page: "3", categoria: "bebe-mama" }), {
+    search: "tylenol", sort: "precio-asc", inStockOnly: true, page: 3, category: "bebe-mama",
+  });
+  const bad = readCatalogParams({ orden: "evil", disponibles: "yes", page: "-1", categoria: "../x" });
+  assert.equal(bad.sort, "nombre");
+  assert.equal(bad.inStockOnly, false);
+  assert.equal(bad.page, 1);
+  assert.equal(bad.category, undefined);
+});
+
+test("catalogRobots noindexes variants and self-canonicalizes pages", async () => {
+  const { readCatalogParams, catalogRobots } = await import("../lib/search.ts");
+  assert.deepEqual(catalogRobots(readCatalogParams({}), "/productos"), { canonical: "/productos", index: true });
+  assert.deepEqual(catalogRobots(readCatalogParams({ page: "2", categoria: "bebe-mama" }), "/productos"), {
+    canonical: "/productos?categoria=bebe-mama&page=2", index: true,
+  });
+  assert.equal(catalogRobots(readCatalogParams({ q: "advil" }), "/productos").index, false);
+  assert.equal(catalogRobots(readCatalogParams({ orden: "precio-asc" }), "/productos").index, false);
+});

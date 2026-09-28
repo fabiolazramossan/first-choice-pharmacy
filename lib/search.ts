@@ -63,3 +63,46 @@ export function productSearchFilter(terms: string[]): string {
     })
     .join(",")})`;
 }
+
+export const CATALOG_SORTS = {
+  nombre: { label: "Nombre (A–Z)", order: "name.asc,id.asc" },
+  "precio-asc": { label: "Precio: menor a mayor", order: "price.asc,name.asc,id.asc" },
+  "precio-desc": { label: "Precio: mayor a menor", order: "price.desc,name.asc,id.asc" },
+} as const;
+
+export type CatalogSort = keyof typeof CATALOG_SORTS;
+
+export function parseSort(raw: string | null | undefined): CatalogSort {
+  return raw && Object.hasOwn(CATALOG_SORTS, raw) ? (raw as CatalogSort) : "nombre";
+}
+
+type RawParams = Record<string, string | string[] | undefined>;
+const firstParam = (value: string | string[] | undefined) => (Array.isArray(value) ? value[0] : value);
+
+/** Reads catalog URL parameters (?q, ?categoria, ?orden, ?disponibles, ?page). */
+export function readCatalogParams(params: RawParams) {
+  const category = firstParam(params.categoria);
+  return {
+    search: (firstParam(params.q) ?? "").trim().slice(0, 80),
+    sort: parseSort(firstParam(params.orden)),
+    inStockOnly: firstParam(params.disponibles) === "1",
+    page: parsePage(firstParam(params.page)),
+    category: category && /^[a-z0-9-]{1,80}$/.test(category) ? category : undefined,
+  };
+}
+
+/**
+ * Search-engine rules for a catalog listing: filtered/sorted variants are
+ * noindex (follow), paginated pages canonicalize to themselves.
+ */
+export function catalogRobots(p: ReturnType<typeof readCatalogParams>, basePath: string) {
+  const variant = Boolean(p.search || p.inStockOnly || p.sort !== "nombre");
+  const canonicalParams = new URLSearchParams();
+  if (p.category) canonicalParams.set("categoria", p.category);
+  if (p.page > 1) canonicalParams.set("page", String(p.page));
+  const qs = canonicalParams.toString();
+  return {
+    canonical: qs ? `${basePath}?${qs}` : basePath,
+    index: !variant,
+  };
+}

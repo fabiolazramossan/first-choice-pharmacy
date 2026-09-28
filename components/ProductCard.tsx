@@ -21,7 +21,7 @@ export default function ProductCard({
   const onSale = product.compare_at_price != null && product.compare_at_price > product.price;
 
   return (
-    <article className="flex flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-lg">
+    <article className="flex w-full flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-lg">
       {/* Image duplicates the title link, so it is hidden from keyboard/screen readers. */}
       <Link href={`/producto/${product.slug}`} tabIndex={-1} aria-hidden="true" className="relative mb-4 flex aspect-square items-center justify-center overflow-hidden rounded-2xl bg-gray-50">
         {isTrustedProductImage(product.image_url) ? (

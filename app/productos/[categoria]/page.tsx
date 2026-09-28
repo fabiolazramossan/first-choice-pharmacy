@@ -2,40 +2,42 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import CatalogListing from "@/components/CatalogListing";
 import { categoryEmoji } from "@/lib/catalog-display";
-import { getCategoryBySlug, parsePage, searchCatalog } from "@/lib/catalog";
+import { getCategoryBySlug, searchCatalog } from "@/lib/catalog";
+import { catalogRobots, readCatalogParams } from "@/lib/search";
 
 type Props = {
   params: Promise<{ categoria: string }>;
-  searchParams: Promise<{ q?: string | string[]; page?: string | string[] }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-function first(value: string | string[] | undefined) {
-  return Array.isArray(value) ? value[0] : value;
-}
-
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { categoria } = await params;
   const category = await getCategoryBySlug(categoria).catch(() => null);
   if (!category) return { title: "Categoría no encontrada", robots: { index: false } };
+  // The category is in the path here, so it must not also be a query parameter.
+  const query = { ...readCatalogParams(await searchParams), category: undefined };
+  const { canonical, index } = catalogRobots(query, `/productos/${category.slug}`);
   return {
     title: category.name,
     description:
       category.description ?? `${category.name} disponibles en First Choice Pharmacy, San Juan, Puerto Rico.`,
-    alternates: { canonical: `/productos/${category.slug}` },
+    alternates: { canonical },
+    robots: index ? undefined : { index: false, follow: true },
   };
 }
 
 export default async function CategoriaPage({ params, searchParams }: Props) {
   const { categoria } = await params;
-  const query = await searchParams;
+  const query = readCatalogParams(await searchParams);
   const category = await getCategoryBySlug(categoria);
   if (!category) notFound();
 
-  const search = (first(query.q) ?? "").trim().slice(0, 80);
   const result = await searchCatalog({
     categoryId: category.id,
-    search,
-    page: parsePage(first(query.page)),
+    search: query.search,
+    page: query.page,
+    sort: query.sort,
+    inStockOnly: query.inStockOnly,
   });
 
   return (
@@ -44,7 +46,7 @@ export default async function CategoriaPage({ params, searchParams }: Props) {
       description={category.description ?? "Productos disponibles en tienda."}
       emoji={categoryEmoji(category.slug)}
       basePath={`/productos/${category.slug}`}
-      search={search}
+      state={{ search: query.search, sort: query.sort, inStockOnly: query.inStockOnly }}
       result={result}
       activeCategorySlug={category.slug}
     />

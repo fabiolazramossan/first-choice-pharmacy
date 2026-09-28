@@ -1,6 +1,6 @@
 // Server-side catalog queries (imported only from server components and route handlers).
 import { selectFromSupabase, selectPageFromSupabase } from "@/lib/supabase";
-import { parseSearchTerms, productSearchFilter } from "@/lib/search";
+import { CATALOG_SORTS, parseSearchTerms, productSearchFilter, type CatalogSort } from "@/lib/search";
 
 export { parsePage } from "@/lib/search";
 
@@ -84,20 +84,29 @@ export async function searchCatalog({
   search,
   page,
   pageSize = CATALOG_PAGE_SIZE,
+  sort = "nombre",
+  inStockOnly = false,
+  excludeId,
 }: {
   categoryId?: string;
   search?: string | null;
   page: number;
   pageSize?: number;
+  sort?: CatalogSort;
+  /** Only products with stock > 0 (inner join on inventory). */
+  inStockOnly?: boolean;
+  excludeId?: string;
 }) {
   const query: Record<string, string> = {
     select:
-      "id,name,slug,brand,description,price,compare_at_price,image_url,category_id,inventory(quantity),category:categories!inner(is_active)",
+      `id,name,slug,brand,description,price,compare_at_price,image_url,category_id,${inStockOnly ? "inventory!inner" : "inventory"}(quantity),category:categories!inner(is_active)`,
     // Products in a deactivated category are hidden with it.
     "category.is_active": "eq.true",
     ...publicProductFilters(),
-    order: "name.asc,id.asc",
+    order: CATALOG_SORTS[sort].order,
   };
+  if (inStockOnly) query["inventory.quantity"] = "gt.0";
+  if (excludeId) query.id = `neq.${excludeId}`;
   if (categoryId) query.category_id = `eq.${categoryId}`;
 
   const terms = parseSearchTerms(search);
