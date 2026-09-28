@@ -75,6 +75,15 @@ Trigger on `orders`: cancelling an order returns its quantities to
 change). Pre-apply check: `select count(*) from orders;` must be 0, since
 older orders never took stock. Rollback: matching `.down.sql`.
 
+### `proposed/20260928120200_inventory_audit_log.sql`
+
+Append-only `inventory_adjustments` history (product, before → after,
+delta, optional reason, actor `auth.uid()`, time) written by a trigger on
+`inventory`, so every path that changes stock is logged. Admin/manager can
+read it; nobody can edit or delete it through the API. Adds a nullable
+`inventory.last_adjustment_reason` column the admin UI can use to attach a
+reason. No existing rows change. Rollback deletes the history (export first).
+
 ## 4. Applying (only after approval)
 
 1. Verify the assumptions above; adjust the SQL if needed.
