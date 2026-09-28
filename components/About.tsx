@@ -10,9 +10,9 @@ export default function About() {
     <section id="about" className="relative bg-surface-soft py-24 dark:bg-midnight">
       <div className="mx-auto max-w-6xl px-5 sm:px-8">
         <Reveal className="mx-auto max-w-xl text-center">
-          <span className="section-badge">About Us</span>
+          <span className="section-badge">Sobre nosotros</span>
           <h2 className="mt-5 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
-            Why Choose First Choice?
+            ¿Por qué elegir First Choice?
           </h2>
         </Reveal>
 

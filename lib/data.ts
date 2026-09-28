@@ -11,11 +11,11 @@ export const BRAND = {
 };
 
 export const NAV_LINKS = [
-  { label: "Home", href: "#top" },
+  { label: "Inicio", href: "#top" },
   { label: "Servicios", href: "#services" },
   { label: "Refill", href: "#refill" },
   { label: "Productos", href: "#products" },
-  { label: "Health Hub", href: "#healthhub" },
+  { label: "Delivery", href: "#delivery" },
   { label: "Contacto", href: "#contact" },
 ];
 
@@ -36,7 +36,7 @@ export type Service = {
 export const SERVICES: Service[] = [
   { icon: "pill", title: "Prescripciones", description: "Llenado rápido y seguro de tus recetas médicas.", color: "text-blue-600", bg: "bg-blue-100" },
   { icon: "syringe", title: "Vacunación", description: "Vacunas para toda la familia con nuestro equipo certificado.", color: "text-green-600", bg: "bg-green-100" },
-  { icon: "baby", title: "WIC Services", description: "Apoyamos la salud de tu bebé y tu familia.", color: "text-yellow-600", bg: "bg-yellow-100" },
+  { icon: "baby", title: "Servicios WIC", description: "Apoyamos la salud de tu bebé y tu familia.", color: "text-yellow-600", bg: "bg-yellow-100" },
   { icon: "leaf", title: "Bienestar", description: "Vitaminas, suplementos y productos de bienestar.", color: "text-emerald-600", bg: "bg-emerald-100" },
   { icon: "truck", title: "Delivery", description: "Llevamos tu orden a tu puerta en San Juan.", color: "text-blue-500", bg: "bg-blue-100" },
   { icon: "sparkles", title: "Productos Premium", description: "Perfumes árabes, cuidado personal y más.", color: "text-red-500", bg: "bg-red-100" },

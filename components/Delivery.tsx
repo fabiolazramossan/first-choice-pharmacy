@@ -6,9 +6,9 @@ import Reveal from "./Reveal";
 import { BRAND } from "@/lib/data";
 
 const STEPS = [
-  { icon: User, label: "Customer", note: "Request your refill online" },
-  { icon: Building2, label: "Pharmacy", note: "We prepare it the same day" },
-  { icon: Home, label: "Home Delivery", note: "Delivered to your door" },
+  { icon: User, label: "Cliente", note: "Solicita tu refill en línea" },
+  { icon: Building2, label: "Farmacia", note: "Lo preparamos el mismo día" },
+  { icon: Home, label: "Entrega a domicilio", note: "Directo a tu puerta" },
 ];
 
 export default function Delivery() {
@@ -19,15 +19,15 @@ export default function Delivery() {
           <Reveal>
             <span className="section-badge">Delivery</span>
             <h2 className="mt-5 font-display text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl">
-              Convenient delivery service to your doorstep
+              Servicio de delivery hasta tu puerta
             </h2>
             <p className="mt-4 max-w-md text-ink/60 dark:text-white/60">
-              No need to leave home. Once your prescription or order is
-              ready, our team brings it straight to you, anywhere in our San
-              Juan delivery area.
+              Sin salir de casa. Cuando tu receta u orden esté lista, nuestro
+              equipo te la lleva directamente, en cualquier punto de nuestra
+              área de servicio en San Juan.
             </p>
             <a href="#refill" className="btn-primary mt-8 w-fit">
-              Order Now
+              Solicitar ahora
               <ArrowRight className="h-4 w-4" />
             </a>
           </Reveal>
@@ -69,7 +69,7 @@ export default function Delivery() {
               </div>
 
               <div className="mt-8 flex items-center justify-center gap-2 rounded-2xl bg-surface-soft px-4 py-3 text-center text-xs text-ink/55 dark:bg-white/[0.04] dark:text-white/55">
-                Delivering across San Juan from {BRAND.address}
+                Entregas en San Juan desde {BRAND.address}
               </div>
             </div>
           </Reveal>

@@ -63,8 +63,8 @@ export default function Hero() {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="mt-6 max-w-3xl font-display text-[2.6rem] font-extrabold leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl"
         >
-          Your Health
-          <span className="block text-gradient">Starts Here</span>
+          Tu salud
+          <span className="block text-gradient">empieza aquí</span>
         </motion.h1>
 
         <motion.p
@@ -73,8 +73,8 @@ export default function Hero() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="mt-6 max-w-xl text-balance text-base text-ink/65 sm:text-lg dark:text-white/65"
         >
-          Fast prescriptions, vaccines, wellness products and personalized
-          care in one place.
+          Recetas rápidas, vacunas, productos de bienestar y atención
+          personalizada en un solo lugar.
         </motion.p>
 
         <motion.div
@@ -84,12 +84,12 @@ export default function Hero() {
           className="mt-10 flex flex-col gap-3 sm:flex-row"
         >
           <a href="#refill" className="btn-primary">
-            Refill Prescription
+            Solicitar refill
             <ArrowRight className="h-4 w-4" />
           </a>
           <a href={BRAND.phoneHref} className="btn-secondary">
             <Phone className="h-4 w-4" />
-            Call Now
+            Llamar ahora
           </a>
         </motion.div>
 
@@ -100,9 +100,9 @@ export default function Hero() {
           className="mt-16 grid w-full max-w-2xl grid-cols-3 gap-3 sm:gap-5"
         >
           {[
-            { value: "7", label: "Days a week open" },
-            { value: "WIC", label: "Approved location" },
-            { value: "100%", label: "Local & community-run" },
+            { value: "7", label: "Días a la semana" },
+            { value: "WIC", label: "Localidad aprobada" },
+            { value: "100%", label: "Local y comunitaria" },
           ].map((stat) => (
             <div
               key={stat.label}

@@ -10,8 +10,8 @@ export default function Footer() {
           <div>
             <Logo light />
             <p className="mt-4 max-w-xs text-sm text-white/55">
-              {BRAND.slogan}. A modern community pharmacy serving San Juan,
-              Puerto Rico.
+              {BRAND.slogan}. Una farmacia comunitaria moderna al servicio de San
+              Juan, Puerto Rico.
             </p>
             <div className="mt-5 flex items-center gap-3">
               <a
@@ -32,7 +32,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <p className="text-sm font-semibold text-white/80">Quick Links</p>
+            <p className="text-sm font-semibold text-white/80">Enlaces rápidos</p>
             <ul className="mt-4 space-y-2.5">
               {NAV_LINKS.map((link) => (
                 <li key={link.href}>
@@ -48,9 +48,9 @@ export default function Footer() {
           </div>
 
           <div>
-            <p className="text-sm font-semibold text-white/80">Services</p>
+            <p className="text-sm font-semibold text-white/80">Servicios</p>
             <ul className="mt-4 space-y-2.5">
-              {["Prescription Refills", "Vaccines", "WIC", "Delivery"].map(
+              {["Refills de recetas", "Vacunas", "WIC", "Delivery"].map(
                 (s) => (
                   <li key={s} className="text-sm text-white/55">
                     {s}
@@ -61,7 +61,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <p className="text-sm font-semibold text-white/80">Contact</p>
+            <p className="text-sm font-semibold text-white/80">Contacto</p>
             <ul className="mt-4 space-y-3">
               <li className="flex items-start gap-2 text-sm text-white/55">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-brand-aqua" />
@@ -78,8 +78,8 @@ export default function Footer() {
         </div>
 
         <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-7 text-xs text-white/40 sm:flex-row">
-          <p>© 2026 First Choice Pharmacy. All rights reserved.</p>
-          <p>Designed for the San Juan community.</p>
+          <p>© 2026 First Choice Pharmacy. Todos los derechos reservados.</p>
+          <p>Hecho para la comunidad de San Juan.</p>
         </div>
       </div>
     </footer>

@@ -19,13 +19,13 @@ export default function Services() {
     <section id="services" className="relative bg-surface-soft py-24 dark:bg-midnight">
       <div className="mx-auto max-w-6xl px-5 sm:px-8">
         <Reveal className="mx-auto max-w-xl text-center">
-          <span className="section-badge">What We Offer</span>
+          <span className="section-badge">Lo que ofrecemos</span>
           <h2 className="mt-5 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
-            Pharmacy care, modernized
+            Cuidado farmacéutico, modernizado
           </h2>
           <p className="mt-4 text-ink/60 dark:text-white/60">
-            Everything your family needs, from same-day refills to vaccines,
-            handled by a team that knows the neighborhood.
+            Todo lo que tu familia necesita, desde refills el mismo día hasta
+            vacunas, con un equipo que conoce tu comunidad.
           </p>
         </Reveal>
 

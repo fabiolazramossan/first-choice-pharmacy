@@ -9,7 +9,7 @@ export default function WhatsAppButton() {
       href={BRAND.whatsappHref}
       target="_blank"
       rel="noreferrer"
-      aria-label="Chat with us on WhatsApp"
+      aria-label="Escríbenos por WhatsApp (abre en una pestaña nueva)"
       initial={{ scale: 0, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ delay: 1.4, type: "spring", stiffness: 200, damping: 14 }}
