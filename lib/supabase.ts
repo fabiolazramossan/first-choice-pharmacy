@@ -44,10 +44,13 @@ export function hasSupabaseConfig(): boolean {
   return Boolean(config.url && config.keys.length);
 }
 
-export async function selectFromSupabase<T>(
-  table: "categories" | "products",
-  query: Record<string, string>
-): Promise<T[]> {
+type PublicTable = "categories" | "products";
+
+async function fetchFromSupabase(
+  table: PublicTable,
+  query: Record<string, string>,
+  extraHeaders: Record<string, string> = {}
+): Promise<Response> {
   const { url: baseUrl, keys } = getSupabaseConfig();
 
   if (!baseUrl || !keys.length) {
@@ -61,12 +64,13 @@ export async function selectFromSupabase<T>(
 
   for (const [index, apiKey] of keys.entries()) {
     const response = await fetch(endpoint, {
-      headers: { apikey: apiKey },
+      headers: { apikey: apiKey, ...extraHeaders },
       cache: "no-store",
     });
 
-    if (response.ok) {
-      return (await response.json()) as T[];
+    // 416: the requested page starts past the last row.
+    if (response.ok || response.status === 416) {
+      return response;
     }
 
     const canRetryWithFallback =
@@ -77,4 +81,29 @@ export async function selectFromSupabase<T>(
   }
 
   throw new SupabaseRestError("Supabase request failed.", 401);
+}
+
+export async function selectFromSupabase<T>(
+  table: PublicTable,
+  query: Record<string, string>
+): Promise<T[]> {
+  const response = await fetchFromSupabase(table, query);
+  return response.status === 416 ? [] : ((await response.json()) as T[]);
+}
+
+/** Selects one page of rows plus the exact total number of matching rows. */
+export async function selectPageFromSupabase<T>(
+  table: PublicTable,
+  query: Record<string, string>,
+  { offset, limit }: { offset: number; limit: number }
+): Promise<{ rows: T[]; total: number }> {
+  const response = await fetchFromSupabase(
+    table,
+    { ...query, offset: String(offset), limit: String(limit) },
+    { Prefer: "count=exact" }
+  );
+  // Content-Range looks like "0-23/517" or "*/517".
+  const total = Number(response.headers.get("content-range")?.split("/")[1]);
+  const rows = response.status === 416 ? [] : ((await response.json()) as T[]);
+  return { rows, total: Number.isFinite(total) ? total : rows.length };
 }

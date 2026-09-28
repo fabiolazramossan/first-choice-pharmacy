@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { BRAND } from "@/lib/data";
+import { categoryEmoji } from "@/lib/catalog-display";
 
 type Category = {
   id: string;
@@ -13,25 +14,8 @@ type Category = {
   sort_order: number;
 };
 
-const categoryEmoji: Record<string, string> = {
-  "medicamentos-otc": "💊",
-  "vitaminas-suplementos": "🌿",
-  "primeros-auxilios": "🩹",
-  "equipo-medico": "🏥",
-  "dolor-muscular": "💪",
-  "salud-ocular-nasal": "👁️",
-  "bebe-mama": "👶",
-  "vitaminas-infantiles": "🧸",
-  "productos-naturales": "🌱",
-  "grocery-alimentos": "🛒",
-  "leches-bebidas": "🥛",
-  "snacks-dulces": "🍿",
-  "refrescos-agua": "🥤",
-  "juguetes-regalos": "🎁",
-};
 
 export default function Products() {
-  const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -83,6 +67,26 @@ export default function Products() {
           </p>
         </div>
 
+        <form role="search" action="/productos" method="get" className="mx-auto mb-10 flex max-w-2xl flex-col gap-3 sm:flex-row">
+          <label htmlFor="home-product-search" className="sr-only">
+            Buscar productos
+          </label>
+          <input
+            id="home-product-search"
+            name="q"
+            type="search"
+            maxLength={80}
+            placeholder="Buscar productos, marcas o códigos…"
+            className="min-w-0 flex-1 rounded-full border border-gray-300 px-5 py-3 text-sm text-gray-900 placeholder:text-gray-500 focus:border-green-600 focus:outline-none focus:ring-2 focus:ring-green-600/30"
+          />
+          <button
+            type="submit"
+            className="rounded-full bg-green-600 px-6 py-3 text-sm font-bold text-white hover:bg-green-700"
+          >
+            Buscar
+          </button>
+        </form>
+
         {loading && (
           <div className="py-12 text-center text-sm font-medium text-gray-500">
             Cargando categorías...
@@ -103,21 +107,21 @@ export default function Products() {
         {!loading && !error && (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {categories.map((cat, i) => (
-              <motion.button
+              <motion.div
                 key={cat.id}
-                type="button"
-                aria-label={`Ver productos de ${cat.name}`}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.04 }}
                 whileHover={{ y: -6, scale: 1.02 }}
-                onClick={() => router.push(`/productos/${cat.slug}`)}
-                className="group relative cursor-pointer overflow-hidden rounded-3xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 p-5 shadow-sm transition-all duration-300 hover:border-green-200 hover:shadow-xl"
+              >
+              <Link
+                href={`/productos/${cat.slug}`}
+                className="group relative block h-full overflow-hidden rounded-3xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 p-5 shadow-sm transition-all duration-300 hover:border-green-200 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-green-600 focus-visible:ring-offset-2"
               >
                 <div className="flex flex-col items-center text-center">
-                  <div className="mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-3xl shadow-md transition-transform duration-300 group-hover:scale-110">
-                    {categoryEmoji[cat.slug] ?? "🛍️"}
+                  <div aria-hidden="true" className="mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-3xl shadow-md transition-transform duration-300 group-hover:scale-110">
+                    {categoryEmoji(cat.slug)}
                   </div>
                   <h3 className="text-sm font-bold leading-tight text-gray-900">
                     {cat.name}
@@ -125,11 +129,12 @@ export default function Products() {
                   <p className="mt-1 text-xs leading-snug text-gray-500">
                     {cat.description ?? "Ver productos disponibles"}
                   </p>
-                  <span className="mt-3 rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700 opacity-0 transition-opacity group-hover:opacity-100">
+                  <span aria-hidden="true" className="mt-3 rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
                     Ver productos
                   </span>
                 </div>
-              </motion.button>
+              </Link>
+              </motion.div>
             ))}
           </div>
         )}

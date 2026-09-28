@@ -6,7 +6,9 @@ import { useCart } from "@/components/CartProvider";
 
 export default function AddToCartButton({
   product,
+  disabled = false,
 }: {
+  disabled?: boolean;
   product: {
     id: string;
     name: string;
@@ -17,6 +19,18 @@ export default function AddToCartButton({
 }) {
   const { addItem } = useCart();
   const [added, setAdded] = useState(false);
+
+  if (disabled) {
+    return (
+      <button
+        type="button"
+        disabled
+        className="mt-3 flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-full bg-gray-200 py-2.5 text-xs font-bold text-gray-600"
+      >
+        Agotado
+      </button>
+    );
+  }
 
   const handleAdd = () => {
     addItem(product);

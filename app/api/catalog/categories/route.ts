@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
-import {
-  hasSupabaseConfig,
-  selectFromSupabase,
-  SupabaseRestError,
-} from "@/lib/supabase";
+import { hasSupabaseConfig, SupabaseRestError } from "@/lib/supabase";
+import { getActiveCategories } from "@/lib/catalog";
 
 export const dynamic = "force-dynamic";
 
@@ -16,11 +13,7 @@ export async function GET() {
   }
 
   try {
-    const categories = await selectFromSupabase("categories", {
-      select: "id,name,slug,description,sort_order",
-      is_active: "eq.true",
-      order: "sort_order.asc",
-    });
+    const categories = await getActiveCategories();
 
     return NextResponse.json(
       { categories: categories ?? [] },
