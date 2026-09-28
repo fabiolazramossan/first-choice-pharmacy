@@ -1,12 +1,6 @@
-import { randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
-import {
-  hasSupabaseConfig,
-  selectFromSupabase,
-  SupabaseRestError,
-} from "@/lib/supabase";
-import { publicProductFilters, stockOf } from "@/lib/catalog";
+import { createOrderRecord, hasOrderDatabaseConfig, OrderError } from "@/lib/orders";
 import {
   cleanText,
   escapeHtml,
@@ -39,11 +33,6 @@ function checkRateLimit(ip: string): boolean {
   if (entry.count >= LIMIT) return false;
   entry.count += 1;
   return true;
-}
-
-function orderReference(): string {
-  const date = new Date().toISOString().slice(2, 10).replaceAll("-", "");
-  return `FC-${date}-${randomBytes(3).toString("hex").toUpperCase()}`;
 }
 
 function money(value: number): string {
@@ -80,7 +69,7 @@ export async function POST(request: Request) {
   }
 
   const resendApiKey = process.env.RESEND_API_KEY;
-  if (!resendApiKey || !hasSupabaseConfig()) {
+  if (!resendApiKey || !hasOrderDatabaseConfig()) {
     return NextResponse.json(
       { error: "El servicio de órdenes no está disponible temporalmente." },
       { status: 503 }
@@ -152,59 +141,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "La cantidad máxima por producto es 10." }, { status: 400 });
     }
 
-    const ids = [...quantities.keys()];
-    const products = await selectFromSupabase<{
-      id: string;
-      name: string;
-      sku: string | null;
-      price: number;
-      inventory: { quantity: number } | { quantity: number }[] | null;
-    }>("products", {
-      select: "id,name,sku,price,inventory(quantity)",
-      id: `in.(${ids.join(",")})`,
-      ...publicProductFilters(),
-    });
-
-    const available = new Map(products.map((product) => [product.id, product]));
-
-    if (available.size !== ids.length) {
-      return NextResponse.json(
-        { error: "Uno o más productos ya no están disponibles. Actualiza el carrito." },
-        { status: 409 }
-      );
-    }
-
-    const shortItem = products.find((product) => stockOf(product.inventory) < quantities.get(product.id)!);
-    if (shortItem) {
-      return NextResponse.json(
-        { error: `No hay suficiente inventario de ${shortItem.name}. Ajusta la cantidad en el carrito.` },
-        { status: 409 }
-      );
-    }
-
-    const lineItems = ids.map((id) => {
-      const product = available.get(id)!;
-      const quantity = quantities.get(id)!;
-      const unitPrice = Number(product.price);
-      if (!Number.isFinite(unitPrice) || unitPrice < 0) {
-        throw new Error("Invalid catalog price");
-      }
-      return {
-        id,
-        name: product.name,
-        sku: product.sku,
-        quantity,
-        unitPrice,
-        lineTotal: Math.round(unitPrice * 100) * quantity / 100,
-      };
-    });
-
-    const subtotalCents = lineItems.reduce(
-      (sum, item) => sum + Math.round(item.unitPrice * 100) * item.quantity,
-      0
+    // The database function re-validates everything, locks stock, prices the
+    // cart from the catalog and records the order atomically.
+    const order = await createOrderRecord(
+      {
+        name: customerName,
+        phone: customerPhone,
+        email: customerEmail || null,
+        fulfillment_method: fulfillmentMethod as "pickup" | "delivery",
+        delivery_address:
+          fulfillmentMethod === "delivery"
+            ? { line1: addressLine, city, postal_code: postalCode }
+            : null,
+        notes: notes || null,
+      },
+      [...quantities].map(([product_id, quantity]) => ({ product_id, quantity }))
     );
-    const subtotal = subtotalCents / 100;
-    const reference = orderReference();
+    const reference = `#${order.order_number}`;
+    const subtotal = order.subtotal;
     const pharmacyEmail = process.env.PHARMACY_EMAIL || "firstpharmacy.3pr@gmail.com";
     const fromEmail =
       process.env.ORDER_FROM_EMAIL || "First Choice Pharmacy <onboarding@resend.dev>";
@@ -218,13 +172,13 @@ export async function POST(request: Request) {
         ? `${addressLine}, ${city}, PR ${postalCode}`
         : "Recogido en farmacia"
     );
-    const itemRows = lineItems
+    const itemRows = order.items
       .map(
         (item) => `
           <tr>
-            <td style="padding:8px;border-bottom:1px solid #e5e7eb;">${escapeHtml(item.name)}</td>
+            <td style="padding:8px;border-bottom:1px solid #e5e7eb;">${escapeHtml(item.product_name)}</td>
             <td style="padding:8px;border-bottom:1px solid #e5e7eb;text-align:center;">${item.quantity}</td>
-            <td style="padding:8px;border-bottom:1px solid #e5e7eb;text-align:right;">${money(item.lineTotal)}</td>
+            <td style="padding:8px;border-bottom:1px solid #e5e7eb;text-align:right;">${money(item.line_total)}</td>
           </tr>`
       )
       .join("");
@@ -254,22 +208,17 @@ export async function POST(request: Request) {
     });
 
     if (result.error) {
-      console.error("Resend order error:", result.error.name);
-      return NextResponse.json({ error: "No se pudo enviar la orden." }, { status: 502 });
+      // The order is already recorded and visible in Admin → Órdenes, so the
+      // customer still gets a confirmation; staff are alerted via logs.
+      console.error("Resend order notification failed:", result.error.name, reference);
     }
 
     return NextResponse.json({ success: true, orderReference: reference, subtotal });
   } catch (error) {
-    console.error(
-      "Order API error:",
-      error instanceof SupabaseRestError ? error.status : "unknown"
-    );
-    if (error instanceof SupabaseRestError) {
-      return NextResponse.json(
-        { error: "No pudimos validar el carrito." },
-        { status: 502 }
-      );
+    if (error instanceof OrderError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
     }
+    console.error("Order API error:", error instanceof Error ? error.name : "unknown");
     return NextResponse.json({ error: "No se pudo procesar la orden." }, { status: 500 });
   }
 }
