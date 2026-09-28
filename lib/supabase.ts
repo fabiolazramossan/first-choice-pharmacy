@@ -46,10 +46,16 @@ export function hasSupabaseConfig(): boolean {
 
 type PublicTable = "categories" | "products";
 
+type CacheOptions = {
+  /** Seconds the response may be cached by Next.js; omit for no caching. */
+  revalidate?: number;
+};
+
 async function fetchFromSupabase(
   table: PublicTable,
   query: Record<string, string>,
-  extraHeaders: Record<string, string> = {}
+  extraHeaders: Record<string, string> = {},
+  { revalidate }: CacheOptions = {}
 ): Promise<Response> {
   const { url: baseUrl, keys } = getSupabaseConfig();
 
@@ -65,7 +71,7 @@ async function fetchFromSupabase(
   for (const [index, apiKey] of keys.entries()) {
     const response = await fetch(endpoint, {
       headers: { apikey: apiKey, ...extraHeaders },
-      cache: "no-store",
+      ...(revalidate ? { next: { revalidate } } : { cache: "no-store" as const }),
     });
 
     // 416: the requested page starts past the last row.
@@ -85,9 +91,10 @@ async function fetchFromSupabase(
 
 export async function selectFromSupabase<T>(
   table: PublicTable,
-  query: Record<string, string>
+  query: Record<string, string>,
+  cache: CacheOptions = {}
 ): Promise<T[]> {
-  const response = await fetchFromSupabase(table, query);
+  const response = await fetchFromSupabase(table, query, {}, cache);
   return response.status === 416 ? [] : ((await response.json()) as T[]);
 }
 

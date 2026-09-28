@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 export const revalidate = 300;
 
 export default async function Home() {
-  const categories = await getActiveCategories().catch(() => null);
+  const categories = await getActiveCategories({ revalidate }).catch(() => null);
 
   return (
     <>

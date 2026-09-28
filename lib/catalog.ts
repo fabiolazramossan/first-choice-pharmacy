@@ -56,12 +56,16 @@ export function stockOf(inventory: ProductRow["inventory"]): number {
   return Number.isInteger(quantity) && quantity > 0 ? quantity : 0;
 }
 
-export async function getActiveCategories(): Promise<CatalogCategory[]> {
-  return selectFromSupabase<CatalogCategory>("categories", {
-    select: "id,name,slug,description,sort_order",
-    is_active: "eq.true",
-    order: "sort_order.asc,name.asc",
-  });
+export async function getActiveCategories(cache: { revalidate?: number } = {}): Promise<CatalogCategory[]> {
+  return selectFromSupabase<CatalogCategory>(
+    "categories",
+    {
+      select: "id,name,slug,description,sort_order",
+      is_active: "eq.true",
+      order: "sort_order.asc,name.asc",
+    },
+    cache
+  );
 }
 
 export async function getCategoryBySlug(slug: string): Promise<CatalogCategory | null> {
