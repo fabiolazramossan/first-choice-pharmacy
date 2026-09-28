@@ -14,6 +14,7 @@ import {
   Truck,
 } from "lucide-react";
 import { useCart } from "@/components/CartProvider";
+import { useCartAvailability } from "@/hooks/useCartAvailability";
 
 type CheckoutForm = {
   customerName: string;
@@ -43,7 +44,8 @@ function money(value: number) {
 }
 
 export default function CheckoutForm({ ordersEnabled }: { ordersEnabled: boolean }) {
-  const { items, subtotal, clearCart } = useCart();
+  const { items, hydrated, subtotal, clearCart } = useCart();
+  const { status: availabilityStatus, unavailableCount } = useCartAvailability();
   const [startedAt] = useState(() => Date.now());
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -139,9 +141,17 @@ export default function CheckoutForm({ ordersEnabled }: { ordersEnabled: boolean
     );
   }
 
+  if (!hydrated) {
+    return (
+      <main id="contenido" className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12">
+        <p role="status" className="text-sm text-gray-600">Cargando tu orden…</p>
+      </main>
+    );
+  }
+
   if (items.length === 0) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12">
+      <main id="contenido" className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12">
         <section className="w-full max-w-lg rounded-[2rem] border border-gray-200 bg-white p-10 text-center shadow-sm">
           <PackageCheck className="mx-auto h-12 w-12 text-gray-300" />
           <h1 className="mt-4 text-2xl font-extrabold text-gray-900">
@@ -151,7 +161,7 @@ export default function CheckoutForm({ ordersEnabled }: { ordersEnabled: boolean
             Añade productos antes de continuar con tu orden.
           </p>
           <Link
-            href="/#products"
+            href="/productos"
             className="mt-6 inline-flex rounded-full bg-green-600 px-6 py-3 text-sm font-bold text-white"
           >
             Ver productos
@@ -326,6 +336,17 @@ export default function CheckoutForm({ ordersEnabled }: { ordersEnabled: boolean
               </label>
             </div>
 
+            <fieldset className="mt-6 rounded-2xl border border-gray-200 p-4">
+              <legend className="px-1 text-sm font-semibold text-gray-700">Pago</legend>
+              <p className="flex gap-3 text-sm text-gray-600">
+                <CreditCard className="h-5 w-5 shrink-0 text-green-600" aria-hidden="true" />
+                <span>
+                  El pago se coordina con la farmacia cuando confirme tu orden. Por ahora no aceptamos pagos en línea y no
+                  pedimos datos de tarjeta en este sitio.
+                </span>
+              </p>
+            </fieldset>
+
             <label className="mt-6 flex items-start gap-3 text-sm text-gray-600">
               <input
                 required
@@ -339,6 +360,12 @@ export default function CheckoutForm({ ordersEnabled }: { ordersEnabled: boolean
               </span>
             </label>
 
+            {unavailableCount > 0 && (
+              <p role="alert" className="mt-5 rounded-2xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                Hay productos no disponibles en tu carrito. <Link href="/cart" className="underline">Revisa el carrito</Link> para continuar.
+              </p>
+            )}
+
             {error && (
               <p role="alert" className="mt-5 rounded-2xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
                 {error}
@@ -347,7 +374,7 @@ export default function CheckoutForm({ ordersEnabled }: { ordersEnabled: boolean
 
             <button
               type="submit"
-              disabled={!ordersEnabled || submitting || !form.acceptedTerms}
+              disabled={!ordersEnabled || submitting || !form.acceptedTerms || unavailableCount > 0 || availabilityStatus === "checking"}
               className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-green-600 py-4 text-base font-bold text-white shadow-lg hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {submitting ? "Enviando orden..." : "Enviar orden a la farmacia"}
@@ -370,12 +397,22 @@ export default function CheckoutForm({ ordersEnabled }: { ordersEnabled: boolean
             ))}
           </div>
           <div className="my-5 border-t border-gray-100" />
-          <div className="flex justify-between text-lg font-extrabold text-gray-900">
-            <span>Subtotal</span>
-            <span>{money(subtotal)}</span>
+          {/* IVU and delivery fee are calculated by lib/pricing.ts once the
+              pharmacy configures them; until then they are "a confirmar". */}
+          <dl className="space-y-2 text-sm">
+            <div className="flex justify-between text-gray-700"><dt>Subtotal</dt><dd className="font-semibold">{money(subtotal)}</dd></div>
+            <div className="flex justify-between gap-4 text-gray-600"><dt>IVU</dt><dd className="text-right">A confirmar</dd></div>
+            <div className="flex justify-between gap-4 text-gray-600">
+              <dt>Delivery</dt>
+              <dd className="text-right">{form.fulfillmentMethod === "delivery" ? "A confirmar según área" : "No aplica (recogido)"}</dd>
+            </div>
+          </dl>
+          <div className="mt-4 flex justify-between text-lg font-extrabold text-gray-900">
+            <span>Total</span>
+            <span>A confirmar</span>
           </div>
-          <p className="mt-2 text-xs leading-relaxed text-gray-500">
-            La farmacia confirmará disponibilidad, IVU, tarifa de delivery y total final.
+          <p className="mt-2 text-xs leading-relaxed text-gray-600">
+            La farmacia confirmará disponibilidad, IVU, tarifa de delivery y total final antes de cobrar.
           </p>
 
           <div className="mt-6 space-y-3 border-t border-gray-100 pt-5 text-sm text-gray-600">

@@ -23,7 +23,8 @@ type CartContextValue = {
   hydrated: boolean;
   itemCount: number;
   subtotal: number;
-  addItem: (item: Omit<CartItem, "quantity">) => void;
+  /** Adds `quantity` (default 1) of a product; the line is capped at 10 and the cart at 25 lines. */
+  addItem: (item: Omit<CartItem, "quantity">, quantity?: number) => void;
   updateQuantity: (id: string, quantity: number) => void;
   removeItem: (id: string) => void;
   clearCart: () => void;
@@ -34,6 +35,7 @@ type CartContextValue = {
 const CartContext = createContext<CartContextValue | null>(null);
 const STORAGE_KEY = "first-choice-pharmacy-cart";
 const MAX_QUANTITY = 10;
+const MAX_LINES = 25;
 
 function isSavedCartItem(value: unknown): value is CartItem {
   if (!value || typeof value !== "object") return false;
@@ -80,7 +82,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         setItems(
           parsed
             .filter(isSavedCartItem)
-            .slice(0, 25)
+            .slice(0, MAX_LINES)
             .map((item) => ({
               ...item,
               image_url: safeProductImage(item.image_url),
@@ -99,18 +101,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (hydrated) localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   }, [items, hydrated]);
 
-  const addItem = useCallback((item: Omit<CartItem, "quantity">) => {
+  const addItem = useCallback((item: Omit<CartItem, "quantity">, quantity = 1) => {
     const safeItem = { ...item, image_url: safeProductImage(item.image_url) };
+    const amount = Number.isInteger(quantity) && quantity > 0 ? Math.min(quantity, MAX_QUANTITY) : 1;
     setItems((current) => {
       const existing = current.find((x) => x.id === safeItem.id);
       if (existing) {
         return current.map((x) =>
           x.id === safeItem.id
-            ? { ...x, quantity: Math.min(x.quantity + 1, MAX_QUANTITY) }
+            ? { ...x, quantity: Math.min(x.quantity + amount, MAX_QUANTITY) }
             : x
         );
       }
-      return [...current, { ...safeItem, quantity: 1 }];
+      // Same 25-line limit the order API enforces.
+      if (current.length >= MAX_LINES) return current;
+      return [...current, { ...safeItem, quantity: amount }];
     });
   }, []);
 
