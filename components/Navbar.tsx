@@ -12,6 +12,15 @@ import { useCart } from "@/components/CartProvider";
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
   const { itemCount } = useCart();
 
   useEffect(() => {
@@ -34,7 +43,7 @@ export default function Navbar() {
           <Logo />
         </a>
 
-        <nav className="hidden items-center gap-7 lg:flex">
+        <nav aria-label="Principal" className="hidden items-center gap-7 lg:flex">
           {NAV_LINKS.map((link) => (
             <a
               key={link.href}
@@ -85,17 +94,21 @@ export default function Navbar() {
           <ThemeToggle />
           <button
             aria-label={open ? "Cerrar menú" : "Abrir menú"}
+            aria-expanded={open}
+            aria-controls="mobile-menu"
             onClick={() => setOpen((v) => !v)}
             className="flex h-10 w-10 items-center justify-center rounded-full border border-ink/10 bg-white/70 dark:border-white/15 dark:bg-white/5"
           >
-            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {open ? <X className="h-5 w-5" aria-hidden="true" /> : <Menu className="h-5 w-5" aria-hidden="true" />}
           </button>
         </div>
       </div>
 
       <AnimatePresence>
         {open && (
-          <motion.div
+          <motion.nav
+            id="mobile-menu"
+            aria-label="Menú principal"
             initial={{ opacity: 0, y: -12, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -12, scale: 0.97 }}
@@ -123,7 +136,7 @@ export default function Navbar() {
                 Solicitar refill
               </a>
             </div>
-          </motion.div>
+          </motion.nav>
         )}
       </AnimatePresence>
     </header>
