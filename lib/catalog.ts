@@ -29,6 +29,7 @@ export type CatalogProduct = {
 
 type ProductRow = Omit<CatalogProduct, "in_stock"> & {
   inventory: { quantity: number } | { quantity: number }[] | null;
+  category?: unknown;
 };
 
 /**
@@ -87,7 +88,9 @@ export async function searchCatalog({
 }) {
   const query: Record<string, string> = {
     select:
-      "id,name,slug,brand,description,price,compare_at_price,image_url,category_id,inventory(quantity)",
+      "id,name,slug,brand,description,price,compare_at_price,image_url,category_id,inventory(quantity),category:categories!inner(is_active)",
+    // Products in a deactivated category are hidden with it.
+    "category.is_active": "eq.true",
     ...publicProductFilters(),
     order: "name.asc,id.asc",
   };
@@ -103,7 +106,7 @@ export async function searchCatalog({
     limit: pageSize,
   });
 
-  const products: CatalogProduct[] = rows.map(({ inventory, ...product }) => ({
+  const products: CatalogProduct[] = rows.map(({ inventory, category: _category, ...product }) => ({
     ...product,
     price: Number(product.price),
     compare_at_price: product.compare_at_price == null ? null : Number(product.compare_at_price),

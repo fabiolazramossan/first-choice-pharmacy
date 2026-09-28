@@ -29,7 +29,7 @@ export default function AdminPage() {
     ["Productos", "Catálogo, precios y publicación", "/admin/products"],
     ["Inventario", "Existencias y alertas de stock", "/admin/inventory"],
     ["Órdenes", "Pedidos, pagos y fulfillment", "/admin/orders"],
-    ["Categorías", "Organización del catálogo", ""],
+    ["Categorías", "Organización del catálogo", "/admin/categories"],
     ["Usuarios", "Personal y permisos", ""],
   ];
 
