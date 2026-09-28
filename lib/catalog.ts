@@ -153,12 +153,19 @@ export async function getProductBySlug(slug: string): Promise<CatalogProductDeta
 
 /** Slugs of every publicly visible product, for the sitemap. */
 export async function getPublicProductSlugs(): Promise<string[]> {
-  const rows = await selectFromSupabase<{ slug: string }>("products", {
-    select: "slug,category:categories!inner(is_active)",
-    ...publicProductFilters(),
-    "category.is_active": "eq.true",
-    order: "slug.asc",
-    limit: "5000",
-  });
-  return rows.map((row) => row.slug);
+  // Supabase returns at most 1,000 rows per request, so read in pages.
+  const slugs: string[] = [];
+  for (let offset = 0; offset < 50_000; offset += 1000) {
+    const rows = await selectFromSupabase<{ slug: string }>("products", {
+      select: "slug,category:categories!inner(is_active)",
+      ...publicProductFilters(),
+      "category.is_active": "eq.true",
+      order: "slug.asc",
+      offset: String(offset),
+      limit: "1000",
+    });
+    slugs.push(...rows.map((row) => row.slug));
+    if (rows.length < 1000) break;
+  }
+  return slugs;
 }
