@@ -108,7 +108,7 @@ function LegalHeader() {
         <Link href="/">
           <Image src="/logo.png" alt={BRAND.name} width={140} height={46} className="h-11 w-auto object-contain" />
         </Link>
-        <Link href="/" className="text-sm font-semibold text-green-700 hover:underline">
+        <Link href="/" className="py-2 text-sm font-semibold text-green-700 hover:underline">
           ← Volver al inicio
         </Link>
       </div>
@@ -118,11 +118,11 @@ function LegalHeader() {
 
 function LegalFooter() {
   return (
-    <footer className="border-t border-gray-100 bg-gray-50 px-4 py-8 text-center text-sm text-gray-500">
+    <footer className="border-t border-gray-100 bg-gray-50 px-4 py-8 text-center text-sm text-gray-600">
       <p>© 2026 {BRAND.name}.</p>
       <div className="mt-2 flex justify-center gap-4">
-        <Link href="/privacidad" className="hover:text-green-700">Privacidad</Link>
-        <Link href="/terminos" className="hover:text-green-700">Términos</Link>
+        <Link href="/privacidad" className="inline-block py-1 hover:text-green-700">Privacidad</Link>
+        <Link href="/terminos" className="inline-block py-1 hover:text-green-700">Términos</Link>
       </div>
     </footer>
   );

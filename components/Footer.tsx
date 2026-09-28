@@ -38,7 +38,7 @@ export default function Footer() {
                 <li key={link.href}>
                   <a
                     href={link.href}
-                    className="text-sm text-white/55 transition-colors hover:text-brand-aqua"
+                    className="inline-block py-1 text-sm text-white/70 transition-colors hover:text-brand-aqua"
                   >
                     {link.label}
                   </a>
@@ -69,7 +69,7 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-2 text-sm text-white/55">
                 <Phone className="h-4 w-4 shrink-0 text-brand-aqua" />
-                <a href={BRAND.phoneHref} className="hover:text-brand-aqua">
+                <a href={BRAND.phoneHref} className="inline-block py-1 hover:text-brand-aqua">
                   {BRAND.phone}
                 </a>
               </li>

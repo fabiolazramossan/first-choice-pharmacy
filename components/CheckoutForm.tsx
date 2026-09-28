@@ -186,14 +186,14 @@ export default function CheckoutForm({ ordersEnabled }: { ordersEnabled: boolean
           </Link>
           <Link
             href="/cart"
-            className="flex items-center gap-2 text-sm font-semibold text-green-700 hover:underline"
+            className="flex items-center gap-2 py-2 text-sm font-semibold text-green-700 hover:underline"
           >
             <ArrowLeft className="h-4 w-4" /> Volver al carrito
           </Link>
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-6xl gap-7 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_380px]">
+      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-7 px-4 py-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_380px]">
         <form onSubmit={submit} className="space-y-6">
           {!ordersEnabled && (
             <div role="status" className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
@@ -353,7 +353,7 @@ export default function CheckoutForm({ ordersEnabled }: { ordersEnabled: boolean
                 type="checkbox"
                 checked={form.acceptedTerms}
                 onChange={(event) => update("acceptedTerms", event.target.checked)}
-                className="mt-1 h-4 w-4 rounded border-gray-300 accent-green-600"
+                className="mt-0.5 h-5 w-5 shrink-0 rounded border-gray-300 accent-green-600"
               />
               <span>
                 Acepto los <Link href="/terminos" className="font-semibold text-green-700 underline">términos</Link> y la <Link href="/privacidad" className="font-semibold text-green-700 underline">política de privacidad</Link>.

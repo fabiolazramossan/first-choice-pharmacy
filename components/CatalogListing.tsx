@@ -84,9 +84,9 @@ export default function CatalogListing({
         {!categories && (
           <nav aria-label="Ruta de navegación" className="mb-4 text-sm text-gray-600">
             <ol className="flex flex-wrap items-center gap-1">
-              <li><Link href="/" className="hover:text-green-700 hover:underline">Inicio</Link></li>
+              <li><Link href="/" className="inline-block py-1 hover:text-green-700 hover:underline">Inicio</Link></li>
               <li aria-hidden="true">/</li>
-              <li><Link href="/productos" className="hover:text-green-700 hover:underline">Productos</Link></li>
+              <li><Link href="/productos" className="inline-block py-1 hover:text-green-700 hover:underline">Productos</Link></li>
               <li aria-hidden="true">/</li>
               <li aria-current="page" className="font-semibold text-gray-900">{title}</li>
             </ol>
@@ -134,7 +134,7 @@ export default function CatalogListing({
                 </select>
               </label>
               <label className="flex min-h-10 items-center gap-2 text-gray-700">
-                <input type="checkbox" name="disponibles" value="1" defaultChecked={state.inStockOnly} className="h-4 w-4 accent-green-600" />
+                <input type="checkbox" name="disponibles" value="1" defaultChecked={state.inStockOnly} className="h-5 w-5 accent-green-600" />
                 Solo disponibles
               </label>
             </div>

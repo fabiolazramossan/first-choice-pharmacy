@@ -85,9 +85,9 @@ export default async function ProductoPage({ params }: Props) {
       <main id="contenido" className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
         <nav aria-label="Ruta de navegación" className="mb-6 text-sm text-gray-600">
           <ol className="flex flex-wrap items-center gap-1">
-            <li><Link href="/productos" className="hover:text-green-700 hover:underline">Productos</Link></li>
+            <li><Link href="/productos" className="inline-block py-1 hover:text-green-700 hover:underline">Productos</Link></li>
             <li aria-hidden="true">/</li>
-            <li><Link href={`/productos/${product.category.slug}`} className="hover:text-green-700 hover:underline">{product.category.name}</Link></li>
+            <li><Link href={`/productos/${product.category.slug}`} className="inline-block py-1 hover:text-green-700 hover:underline">{product.category.name}</Link></li>
             <li aria-hidden="true">/</li>
             <li aria-current="page" className="font-semibold text-gray-900">{product.name}</li>
           </ol>

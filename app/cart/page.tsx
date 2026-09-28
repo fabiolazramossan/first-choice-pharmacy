@@ -48,7 +48,7 @@ export default function CartPage() {
               </div>
             </div>
           ) : (
-            <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
               <section aria-label="Productos en el carrito" className="space-y-4">
                 {status === "checking" && (
                   <p role="status" className="text-sm text-gray-600">Verificando precios y disponibilidad…</p>
@@ -63,8 +63,8 @@ export default function CartPage() {
                     const max = available?.[item.id];
                     const unavailable = max === 0;
                     return (
-                      <li key={item.id} className={`flex gap-4 rounded-3xl border bg-white p-4 shadow-sm ${unavailable ? "border-red-200" : "border-gray-200"}`}>
-                        <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gray-50 sm:h-24 sm:w-24">
+                      <li key={item.id} className={`flex gap-3 rounded-3xl border bg-white p-3 shadow-sm sm:gap-4 sm:p-4 ${unavailable ? "border-red-200" : "border-gray-200"}`}>
+                        <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gray-50 sm:h-24 sm:w-24">
                           {item.image_url ? (
                             <Image src={item.image_url} alt="" width={96} height={96} className="h-full w-full object-contain p-2" />
                           ) : (
@@ -76,7 +76,7 @@ export default function CartPage() {
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
                               <h2 className="font-bold text-gray-900">
-                                <Link href={`/producto/${item.slug}`} className="hover:text-green-700 hover:underline">{item.name}</Link>
+                                <Link href={`/producto/${item.slug}`} className="inline-block py-0.5 hover:text-green-700 hover:underline">{item.name}</Link>
                               </h2>
                               <p className="mt-1 text-sm font-semibold text-green-700">{formatMoney(item.price)}</p>
                               {unavailable && (
@@ -98,7 +98,7 @@ export default function CartPage() {
                             </button>
                           </div>
 
-                          <div className="mt-3 flex items-center gap-3">
+                          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
                             <button
                               type="button"
                               onClick={() => updateQuantity(item.id, item.quantity - 1)}

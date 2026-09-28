@@ -28,7 +28,7 @@ export default function Contact() {
                     href={BRAND.mapsLinkSrc}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-1 inline-flex items-center gap-1 text-sm text-ink/60 hover:text-brand-aqua dark:text-white/60"
+                    className="mt-1 inline-flex items-center gap-1 py-1 text-sm text-ink/70 hover:text-brand-aqua dark:text-white/70"
                   >
                     {BRAND.address}
                     <ArrowUpRight className="h-3.5 w-3.5" />
@@ -44,7 +44,7 @@ export default function Contact() {
                   <p className="text-sm font-semibold">Teléfono</p>
                   <a
                     href={BRAND.phoneHref}
-                    className="mt-1 inline-block text-sm text-ink/60 hover:text-brand-aqua dark:text-white/60"
+                    className="mt-1 inline-block py-1 text-sm text-ink/70 hover:text-brand-aqua dark:text-white/70"
                   >
                     {BRAND.phone}
                   </a>
