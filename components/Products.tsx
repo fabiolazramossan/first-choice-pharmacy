@@ -104,7 +104,13 @@ export default function Products({ initialCategories = null }: { initialCategori
           </div>
         )}
 
-        {!loading && !error && (
+        {!loading && !error && categories.length === 0 && (
+          <p className="mx-auto max-w-xl rounded-3xl border border-gray-200 bg-gray-50 p-6 text-center text-sm text-gray-600">
+            Estamos organizando nuestro catálogo. Mientras tanto, escríbenos y verificamos disponibilidad.
+          </p>
+        )}
+
+        {!loading && !error && categories.length > 0 && (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {categories.map((cat, i) => (
               <motion.div

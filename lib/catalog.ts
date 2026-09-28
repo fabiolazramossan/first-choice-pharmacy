@@ -56,6 +56,38 @@ export function stockOf(inventory: ProductRow["inventory"]): number {
   return Number.isInteger(quantity) && quantity > 0 ? quantity : 0;
 }
 
+function toCatalogProduct({ inventory, category: _category, ...product }: ProductRow): CatalogProduct {
+  return {
+    ...product,
+    price: Number(product.price),
+    compare_at_price: product.compare_at_price == null ? null : Number(product.compare_at_price),
+    in_stock: stockOf(inventory) > 0,
+  };
+}
+
+const LISTING_SELECT =
+  "id,name,slug,brand,description,price,compare_at_price,image_url,category_id,inventory(quantity),category:categories!inner(is_active)";
+
+/**
+ * Public products flagged is_featured, in stock first. Cached briefly for the
+ * homepage; product pages and the cart always re-check live stock.
+ */
+export async function getFeaturedProducts(limit = 8, cache: { revalidate?: number } = {}): Promise<CatalogProduct[]> {
+  const rows = await selectFromSupabase<ProductRow>(
+    "products",
+    {
+      select: LISTING_SELECT,
+      ...publicProductFilters(),
+      "category.is_active": "eq.true",
+      is_featured: "eq.true",
+      order: "name.asc,id.asc",
+      limit: String(limit),
+    },
+    cache
+  );
+  return rows.map(toCatalogProduct).sort((a, b) => Number(b.in_stock) - Number(a.in_stock));
+}
+
 export async function getActiveCategories(cache: { revalidate?: number } = {}): Promise<CatalogCategory[]> {
   return selectFromSupabase<CatalogCategory>(
     "categories",
@@ -119,12 +151,7 @@ export async function searchCatalog({
     limit: pageSize,
   });
 
-  const products: CatalogProduct[] = rows.map(({ inventory, category: _category, ...product }) => ({
-    ...product,
-    price: Number(product.price),
-    compare_at_price: product.compare_at_price == null ? null : Number(product.compare_at_price),
-    in_stock: stockOf(inventory) > 0,
-  }));
+  const products = rows.map(toCatalogProduct);
 
   return {
     products,

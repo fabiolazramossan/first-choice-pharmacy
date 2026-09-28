@@ -10,7 +10,8 @@ import About from "@/components/About";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
 import WhatsAppButton from "@/components/WhatsAppButton";
-import { getActiveCategories } from "@/lib/catalog";
+import FeaturedProducts from "@/components/FeaturedProducts";
+import { getActiveCategories, getFeaturedProducts } from "@/lib/catalog";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
@@ -20,7 +21,10 @@ export const metadata: Metadata = {
 export const revalidate = 300;
 
 export default async function Home() {
-  const categories = await getActiveCategories({ revalidate }).catch(() => null);
+  const [categories, featured] = await Promise.all([
+    getActiveCategories({ revalidate }).catch(() => null),
+    getFeaturedProducts(8, { revalidate }).catch(() => []),
+  ]);
 
   return (
     <>
@@ -31,6 +35,7 @@ export default async function Home() {
         <Services />
         <RefillForm />
         <Products initialCategories={categories} />
+        <FeaturedProducts products={featured} />
         <Delivery />
         <About />
         <Contact />
