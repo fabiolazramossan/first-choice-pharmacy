@@ -154,3 +154,32 @@ textarea:focus-visible {
 .loading-screen-failsafe {
   animation: loading-screen-out 0.3s ease-in 1s forwards;
 }
+
+/* Hero entrance: CSS-only so the headline is painted from the server HTML
+   (no waiting for hydration) and stays visible without JavaScript. */
+@keyframes hero-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.hero-fade {
+  animation: hero-fade-up 0.55s ease-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-fade {
+    animation: none;
+  }
+}
+
+/* Scroll-reveal sections (components/Reveal.tsx): no fade for reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
