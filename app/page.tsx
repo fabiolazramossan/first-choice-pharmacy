@@ -10,12 +10,18 @@ import About from "@/components/About";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import { getActiveCategories } from "@/lib/catalog";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-export default function Home() {
+// Categories change rarely: regenerate the homepage at most every 5 minutes.
+export const revalidate = 300;
+
+export default async function Home() {
+  const categories = await getActiveCategories().catch(() => null);
+
   return (
     <>
       <LoadingScreen />
@@ -24,7 +30,7 @@ export default function Home() {
         <Hero />
         <Services />
         <RefillForm />
-        <Products />
+        <Products initialCategories={categories} />
         <Delivery />
         <About />
         <Contact />

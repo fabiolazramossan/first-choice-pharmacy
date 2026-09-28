@@ -5,22 +5,22 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { BRAND } from "@/lib/data";
 import { categoryEmoji } from "@/lib/catalog-display";
+import type { CatalogCategory } from "@/lib/catalog";
 
-type Category = {
-  id: string;
-  name: string;
-  slug: string;
-  description: string | null;
-  sort_order: number;
-};
+type Category = CatalogCategory;
 
 
-export default function Products() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+/**
+ * `initialCategories` comes from the server (cached) so the category links are
+ * in the initial HTML; if the server could not load them, the browser fetches.
+ */
+export default function Products({ initialCategories = null }: { initialCategories?: Category[] | null }) {
+  const [categories, setCategories] = useState<Category[]>(initialCategories ?? []);
+  const [loading, setLoading] = useState(initialCategories === null);
   const [error, setError] = useState(false);
 
   useEffect(() => {
+    if (initialCategories !== null) return;
     let mounted = true;
 
     async function loadCategories() {
@@ -50,7 +50,7 @@ export default function Products() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [initialCategories]);
 
   return (
     <section id="products" className="bg-white py-20">
