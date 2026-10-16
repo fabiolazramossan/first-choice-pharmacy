@@ -185,7 +185,11 @@ export async function POST(request: Request) {
       };
     });
 
-    if (lineItems.some((item) => item.name.startsWith("[PRUEBA]"))) {\n      return NextResponse.json({ error: "Los productos de prueba no se pueden enviar como órdenes reales." }, { status: 409 });\n    }\n\n    const subtotalCents = lineItems.reduce(
+    if (lineItems.some((item) => item.name.startsWith("[PRUEBA]"))) {
+      return NextResponse.json({ error: "Los productos de prueba no se pueden enviar como órdenes reales." }, { status: 409 });
+    }
+
+    const subtotalCents = lineItems.reduce(
       (sum, item) => sum + Math.round(item.unitPrice * 100) * item.quantity,
       0
     );
