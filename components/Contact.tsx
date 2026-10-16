@@ -6,18 +6,18 @@ import { BRAND, HOURS } from "@/lib/data";
 
 export default function Contact() {
   return (
-    <section id="contact" className="relative bg-surface py-24 dark:bg-midnight">
-      <div className="mx-auto max-w-6xl px-5 sm:px-8">
+    <section id="contact" className="relative bg-[#f4f9ff] py-16 text-[#10264e]">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <Reveal className="mx-auto max-w-xl text-center">
-          <span className="section-badge">Visit or Call</span>
+          <span className="section-badge">Visítanos</span>
           <h2 className="mt-5 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
-            We&apos;re right around the corner
+            Estamos cerca de ti
           </h2>
         </Reveal>
 
         <div className="mt-14 grid grid-cols-1 gap-8 lg:grid-cols-5">
           <Reveal className="lg:col-span-2">
-            <div className="glass-card flex h-full flex-col gap-6 rounded-5xl p-7 sm:p-9">
+            <div className="flex h-full flex-col gap-6 rounded-3xl border border-sky-100 bg-white p-7 shadow-sm sm:p-9">
               <div className="flex items-start gap-4">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-gradient-soft">
                   <MapPin className="h-5 w-5 text-brand-green-dark dark:text-brand-aqua" />
@@ -75,7 +75,7 @@ export default function Contact() {
 
               <a href={BRAND.phoneHref} className="btn-primary mt-2 w-full">
                 <Phone className="h-4 w-4" />
-                Call Now
+                Llamar ahora
               </a>
             </div>
           </Reveal>
