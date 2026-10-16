@@ -16,16 +16,15 @@ const ICONS: Record<Service["icon"], typeof Pill> = {
 
 export default function Services() {
   return (
-    <section id="services" className="relative bg-surface-soft py-24 dark:bg-midnight">
-      <div className="mx-auto max-w-6xl px-5 sm:px-8">
+    <section id="services" className="relative bg-[#f4f9ff] py-16 text-[#10264e]">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <Reveal className="mx-auto max-w-xl text-center">
-          <span className="section-badge">What We Offer</span>
+          <span className="section-badge">Nuestros servicios</span>
           <h2 className="mt-5 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
-            Pharmacy care, modernized
+            Cuidamos de ti y tu familia
           </h2>
           <p className="mt-4 text-ink/60 dark:text-white/60">
-            Everything your family needs, from same-day refills to vaccines,
-            handled by a team that knows the neighborhood.
+            Recetas, vacunación, WIC y productos para tu bienestar, con atención cercana en San Juan.
           </p>
         </Reveal>
 
@@ -37,7 +36,7 @@ export default function Services() {
                 <motion.div
                   whileHover={{ y: -6 }}
                   transition={{ duration: 0.3, ease: "easeOut" }}
-                  className="gradient-border glass-card group h-full rounded-4xl p-7"
+                  className="group h-full rounded-2xl border border-sky-100 bg-white p-6 shadow-sm hover:shadow-lg"
                 >
                   <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-gradient-soft transition-colors duration-300 group-hover:bg-brand-gradient">
                     <Icon className="h-6 w-6 text-brand-green-dark transition-colors duration-300 group-hover:text-white dark:text-brand-aqua" />
