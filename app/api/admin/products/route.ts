@@ -69,6 +69,10 @@ export async function PATCH(request: Request) {
       console.error("Admin inventory update failed", inventoryResponse.status, detail);
       return NextResponse.json({ error: "Producto actualizado, pero falló el inventario." }, { status: 502 });
     }
+    const inventoryRows = await inventoryResponse.json();
+    if (!Array.isArray(inventoryRows) || inventoryRows.length === 0) {
+      return NextResponse.json({ error: "Los datos del producto se guardaron, pero no existe un registro de inventario para actualizar. Revisa inventario antes de publicar." }, { status: 409 });
+    }
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: "No se pudo guardar el producto." }, { status: 500 });
@@ -94,6 +98,7 @@ export async function POST(request: Request) {
     const price = Number(body.price);
     const quantity = Number(body.quantity);
     const isActive = body.is_active === true;
+    if (isActive) return NextResponse.json({ error: "Los productos nuevos deben crearse como borradores. Completa SKU, presentación, imagen y clasificación PAN antes de publicar." }, { status: 400 });
     if (!name || !categoryId || !Number.isFinite(price) || price < 0 || !Number.isInteger(quantity) || quantity < 0) {
       return NextResponse.json({ error: "Completa nombre, categoría, precio y stock correctamente." }, { status: 400 });
     }
