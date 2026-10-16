@@ -1,6 +1,6 @@
 "use client";
 
-import { MapPin, Teléfono, Clock, ArrowUpRight } from "lucide-react";
+import { MapPin, Phone, Clock, ArrowUpRight } from "lucide-react";
 import Reveal from "./Reveal";
 import { BRAND, HOURS } from "@/lib/data";
 
@@ -38,7 +38,7 @@ export default function Contact() {
 
               <div className="flex items-start gap-4">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#e6f5fc]">
-                  <Teléfono className="h-5 w-5 text-[#0872ad]" />
+                  <Phone className="h-5 w-5 text-[#0872ad]" />
                 </div>
                 <div>
                   <p className="text-sm font-semibold">Teléfono</p>
@@ -74,7 +74,7 @@ export default function Contact() {
               </div>
 
               <a href={BRAND.phoneHref} className="btn-primary mt-2 w-full">
-                <Teléfono className="h-4 w-4" />
+                <Phone className="h-4 w-4" />
                 Llamar ahora
               </a>
             </div>
