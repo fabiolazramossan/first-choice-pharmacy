@@ -172,7 +172,7 @@ export async function POST(request: Request) {
       const product = available.get(id)!;
       const quantity = quantities.get(id)!;
       const unitPrice = Number(product.price);
-      if (!Number.isFinite(unitPrice) || unitPrice < 0) {
+      if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
         throw new Error("Invalid catalog price");
       }
       return {
@@ -185,7 +185,7 @@ export async function POST(request: Request) {
       };
     });
 
-    const subtotalCents = lineItems.reduce(
+    if (lineItems.some((item) => item.name.startsWith("[PRUEBA]"))) {\n      return NextResponse.json({ error: "Los productos de prueba no se pueden enviar como órdenes reales." }, { status: 409 });\n    }\n\n    const subtotalCents = lineItems.reduce(
       (sum, item) => sum + Math.round(item.unitPrice * 100) * item.quantity,
       0
     );
