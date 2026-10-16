@@ -1,6 +1,6 @@
 "use client";
 
-import { MapPin, Phone, Clock, ArrowUpRight } from "lucide-react";
+import { MapPin, Teléfono, Clock, ArrowUpRight } from "lucide-react";
 import Reveal from "./Reveal";
 import { BRAND, HOURS } from "@/lib/data";
 
@@ -15,15 +15,15 @@ export default function Contact() {
           </h2>
         </Reveal>
 
-        <div className="mt-14 grid grid-cols-1 gap-8 lg:grid-cols-5">
+        <div className="mt-9 grid grid-cols-1 gap-6 lg:grid-cols-5">
           <Reveal className="lg:col-span-2">
             <div className="flex h-full flex-col gap-6 rounded-3xl border border-sky-100 bg-white p-7 shadow-sm sm:p-9">
               <div className="flex items-start gap-4">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-gradient-soft">
-                  <MapPin className="h-5 w-5 text-brand-green-dark dark:text-brand-aqua" />
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#e6f5fc]">
+                  <MapPin className="h-5 w-5 text-[#0872ad]" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold">Address</p>
+                  <p className="text-sm font-semibold">Dirección</p>
                   <a
                     href={BRAND.mapsLinkSrc}
                     target="_blank"
@@ -37,11 +37,11 @@ export default function Contact() {
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-gradient-soft">
-                  <Phone className="h-5 w-5 text-brand-green-dark dark:text-brand-aqua" />
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#e6f5fc]">
+                  <Teléfono className="h-5 w-5 text-[#0872ad]" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold">Phone</p>
+                  <p className="text-sm font-semibold">Teléfono</p>
                   <a
                     href={BRAND.phoneHref}
                     className="mt-1 inline-block text-sm text-ink/60 hover:text-brand-aqua dark:text-white/60"
@@ -52,19 +52,19 @@ export default function Contact() {
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-gradient-soft">
-                  <Clock className="h-5 w-5 text-brand-green-dark dark:text-brand-aqua" />
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#e6f5fc]">
+                  <Clock className="h-5 w-5 text-[#0872ad]" />
                 </div>
                 <div className="w-full">
-                  <p className="text-sm font-semibold">Hours</p>
+                  <p className="text-sm font-semibold">Horario</p>
                   <div className="mt-1.5 space-y-1">
                     {HOURS.map((h) => (
                       <div
                         key={h.day}
-                        className="flex justify-between gap-4 text-sm text-ink/60 dark:text-white/60"
+                        className="flex justify-between gap-4 text-sm text-slate-600"
                       >
                         <span>{h.day}</span>
-                        <span className="font-medium text-ink/80 dark:text-white/80">
+                        <span className="font-medium text-slate-800">
                           {h.time}
                         </span>
                       </div>
@@ -74,14 +74,14 @@ export default function Contact() {
               </div>
 
               <a href={BRAND.phoneHref} className="btn-primary mt-2 w-full">
-                <Phone className="h-4 w-4" />
+                <Teléfono className="h-4 w-4" />
                 Llamar ahora
               </a>
             </div>
           </Reveal>
 
           <Reveal delay={0.1} className="lg:col-span-3">
-            <div className="h-full min-h-[360px] overflow-hidden rounded-5xl border border-ink/5 shadow-card dark:border-white/10">
+            <div className="h-full min-h-[360px] overflow-hidden rounded-3xl border border-sky-100 shadow-sm">
               <iframe
                 title="First Choice Pharmacy location"
                 src={BRAND.mapsEmbedSrc}
