@@ -17,12 +17,12 @@ const nav = [
 ] as const;
 
 const tiles = [
-  { title: "Medicamentos OTC", href: "/productos/medicamentos-otc", icon: HeartPulse, bg: "bg-sky-50", color: "text-blue-700" },
-  { title: "Vitaminas y suplementos", href: "/productos/vitaminas-suplementos", icon: Sparkles, bg: "bg-lime-50", color: "text-green-700" },
-  { title: "Cuidado personal", href: "#products", icon: ShieldCheck, bg: "bg-teal-50", color: "text-teal-700" },
-  { title: "Salud familiar", href: "/productos/bebe-mama", icon: Baby, bg: "bg-rose-50", color: "text-rose-700" },
-  { title: "Equipo médico", href: "/productos/equipo-medico", icon: HeartPulse, bg: "bg-blue-50", color: "text-blue-700" },
-  { title: "Hogar y bienestar", href: "/productos/grocery-alimentos", icon: Store, bg: "bg-amber-50", color: "text-amber-700" },
+  { title: "Medicamentos OTC", href: "/productos/medicamentos-otc", icon: HeartPulse, bg: "bg-sky-50", color: "text-blue-700", image: "https://images.unsplash.com/photo-1471864190281-a93a3070b6de?auto=format&fit=crop&w=400&q=80" },
+  { title: "Vitaminas y suplementos", href: "/productos/vitaminas-suplementos", icon: Sparkles, bg: "bg-lime-50", color: "text-green-700", image: "https://images.unsplash.com/photo-1550572017-edd951b55104?auto=format&fit=crop&w=400&q=80" },
+  { title: "Cuidado personal", href: "#products", icon: ShieldCheck, bg: "bg-teal-50", color: "text-teal-700", image: "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?auto=format&fit=crop&w=400&q=80" },
+  { title: "Salud familiar", href: "/productos/bebe-mama", icon: Baby, bg: "bg-rose-50", color: "text-rose-700", image: "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=400&q=80" },
+  { title: "Equipo médico", href: "/productos/equipo-medico", icon: HeartPulse, bg: "bg-blue-50", color: "text-blue-700", image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=400&q=80" },
+  { title: "Hogar y bienestar", href: "/productos/grocery-alimentos", icon: Store, bg: "bg-amber-50", color: "text-amber-700", image: "https://images.unsplash.com/photo-1583947215259-38e31be8751f?auto=format&fit=crop&w=400&q=80" },
   { title: "Ofertas y productos", href: "#products", icon: Percent, bg: "bg-red-50", color: "text-red-600" },
 ];
 
@@ -99,8 +99,8 @@ export default function StorefrontIntro() {
     </section>
     <section aria-label="Categorías principales" className="mx-auto max-w-7xl px-4 py-4">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
-        {tiles.map(({title,href,icon:Icon,bg,color})=><Link key={title} href={href} className={bg+" group flex min-h-[128px] flex-col items-center justify-center gap-3 rounded-2xl border border-white p-4 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-md"}>
-          <Icon size={35} strokeWidth={1.7} className={color+" transition group-hover:scale-110"}/>
+        {tiles.map(({title,href,icon:Icon,bg,color,...tile})=><Link key={title} href={href} className={bg+" group flex min-h-[128px] flex-col items-center justify-center gap-3 rounded-2xl border border-white p-4 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-md"}>
+          {"image" in tile && typeof tile.image === "string" ? <div className="h-20 w-full rounded-xl bg-cover bg-center" style={{backgroundImage: `url(${tile.image})`}} role="img" aria-label={title}/> : <Icon size={45} strokeWidth={1.7} className={color+" transition group-hover:scale-110"}/>}
           <span className="text-xs font-bold leading-tight">{title}</span>
         </Link>)}
       </div>
