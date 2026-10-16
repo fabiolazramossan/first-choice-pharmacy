@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { MapPin, Phone, Search, ShoppingCart, Menu, X, Truck, Store, Baby, Syringe, ArrowRight, Clock3, ShieldCheck, HeartPulse, Sparkles, PackageSearch } from "lucide-react";
+import { MapPin, Phone, Search, ShoppingCart, Menu, X, Truck, Store, Baby, Syringe, ArrowRight, Clock3, ShieldCheck, HeartPulse, Sparkles, PackageSearch, Percent } from "lucide-react";
 import Logo from "@/components/Logo";
 import { useCart } from "@/components/CartProvider";
 import { BRAND, HOURS } from "@/lib/data";
@@ -23,7 +23,7 @@ const tiles = [
   { title: "Salud familiar", href: "/productos/bebe-mama", icon: Baby, bg: "bg-rose-50", color: "text-rose-700" },
   { title: "Equipo médico", href: "/productos/equipo-medico", icon: HeartPulse, bg: "bg-blue-50", color: "text-blue-700" },
   { title: "Hogar y bienestar", href: "/productos/grocery-alimentos", icon: Store, bg: "bg-amber-50", color: "text-amber-700" },
-  { title: "Ofertas y productos", href: "#products", icon: ShoppingCart, bg: "bg-red-50", color: "text-red-600" },
+  { title: "Ofertas y productos", href: "#products", icon: Percent, bg: "bg-red-50", color: "text-red-600" },
 ];
 
 export default function StorefrontIntro() {
@@ -71,13 +71,13 @@ export default function StorefrontIntro() {
         {nav.map(([label,href])=><Link key={label} href={href} className="rounded-lg p-3 text-sm" onClick={()=>setMenuOpen(false)}>{label}</Link>)}
       </nav>}
     </div>
-    <section className="relative isolate overflow-hidden bg-gradient-to-r from-[#eaf9ff] via-white to-[#d7f4ef]">
+    <section className="relative isolate overflow-hidden bg-gradient-to-r from-[#eaf9ff] via-white to-[#c9f1e6]">
       <div className="pointer-events-none absolute -right-20 -top-28 h-80 w-80 rounded-full bg-[#8bd43b]/30 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-36 left-1/3 h-72 w-72 rounded-full bg-[#42b3e8]/25 blur-3xl" />
-      <div className="mx-auto grid min-h-[400px] max-w-7xl items-center gap-6 px-5 py-10 md:grid-cols-2 md:py-16 lg:min-h-[485px]">
+      <div className="mx-auto grid min-h-[400px] max-w-7xl items-center gap-6 px-5 py-10 md:grid-cols-[46%_54%] md:py-10 lg:min-h-[415px]">
         <div className="relative z-10">
           <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/85 px-4 py-2 text-xs font-bold text-green-700 shadow-sm"><ShieldCheck size={15}/> Tu farmacia en Puerto Rico</span>
-          <h1 className="max-w-xl text-[2.65rem] font-black uppercase leading-[1.04] tracking-tight sm:text-6xl lg:text-[4.4rem]">TU SALUD <span className="block text-[#238a39]">ES NUESTRA</span> PRIORIDAD</h1>
+          <h1 className="max-w-xl text-[2.65rem] font-black uppercase leading-[1.02] tracking-tight sm:text-6xl lg:text-[4.1rem]">TU SALUD <span className="block text-[#238a39]">ES NUESTRA</span> PRIORIDAD</h1>
           <p className="mt-5 max-w-md text-base font-medium text-[#245778] sm:text-lg">Medicamentos · Salud · Bienestar para toda la familia.</p>
           <a href="#products" className="mt-7 inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-[#208b35] to-[#58b928] px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-green-700/15">Explorar catálogo <ArrowRight size={17}/></a>
           <div className="mt-9 grid max-w-lg grid-cols-3 gap-3 text-[11px] font-semibold sm:text-xs">
@@ -86,8 +86,8 @@ export default function StorefrontIntro() {
             <a href="#services" className="flex items-center gap-2"><ShieldCheck className="shrink-0 text-blue-700" size={24}/> Servicios WIC</a>
           </div>
         </div>
-        <div className="relative flex min-h-[290px] items-center justify-center overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#d5f0ed] to-[#a7d9ef] shadow-xl md:min-h-[380px]">
-          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1100&q=85')] bg-cover bg-center opacity-90" role="img" aria-label="Profesional de salud en una farmacia" />
+        <div className="relative flex min-h-[310px] items-center justify-center overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#d5f0ed] to-[#a7d9ef] shadow-xl md:min-h-[380px]">
+          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=1100&q=85')] bg-cover bg-center opacity-90" role="img" aria-label="Profesional de salud" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0b4271]/55 via-transparent to-transparent" />
           <div className="absolute bottom-5 left-5 right-5 flex items-center gap-3 rounded-2xl border border-white/70 bg-white/90 p-4 shadow-lg backdrop-blur-sm">
             <span className="rounded-xl bg-green-100 p-3 text-green-700"><Truck size={28}/></span>
@@ -97,9 +97,9 @@ export default function StorefrontIntro() {
         </div>
       </div>
     </section>
-    <section aria-label="Categorías principales" className="mx-auto max-w-7xl px-4 py-7">
+    <section aria-label="Categorías principales" className="mx-auto max-w-7xl px-4 py-4">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
-        {tiles.map(({title,href,icon:Icon,bg,color})=><Link key={title} href={href} className={bg+" group flex min-h-[122px] flex-col items-center justify-center gap-3 rounded-2xl border border-white p-4 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-md"}>
+        {tiles.map(({title,href,icon:Icon,bg,color})=><Link key={title} href={href} className={bg+" group flex min-h-[128px] flex-col items-center justify-center gap-3 rounded-2xl border border-white p-4 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-md"}>
           <Icon size={35} strokeWidth={1.7} className={color+" transition group-hover:scale-110"}/>
           <span className="text-xs font-bold leading-tight">{title}</span>
         </Link>)}
