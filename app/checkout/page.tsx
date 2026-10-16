@@ -101,25 +101,25 @@ export default function CheckoutPage() {
 
   if (result?.success) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-green-50 to-white px-4 py-12">
-        <section className="w-full max-w-xl rounded-[2rem] border border-green-100 bg-white p-8 text-center shadow-xl sm:p-12">
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
-            <CheckCircle2 className="h-11 w-11 text-green-600" />
+      <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[#e9f8ee] to-[#f4fbff] px-4 py-12">
+        <section className="w-full max-w-xl rounded-3xl border border-[#ccebd6] bg-white p-8 text-center shadow-xl sm:p-12">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#e0f4e6]">
+            <CheckCircle2 className="h-11 w-11 text-[#238c3c]" />
           </div>
-          <p className="mt-6 text-sm font-bold uppercase tracking-[0.2em] text-green-700">
+          <p className="mt-6 text-sm font-bold uppercase tracking-[0.2em] text-[#238c3c]">
             Orden recibida
           </p>
-          <h1 className="mt-2 text-3xl font-extrabold text-gray-900">
+          <h1 className="mt-2 text-3xl font-extrabold text-[#10264e]">
             ¡Gracias por tu orden!
           </h1>
           <p className="mt-4 text-gray-600">
             La farmacia te llamará para confirmar disponibilidad, IVU, delivery y el total final antes de cobrar.
           </p>
           <div className="mt-7 rounded-2xl bg-gray-50 p-5">
-            <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-600">
               Número de referencia
             </p>
-            <p className="mt-1 text-2xl font-extrabold text-gray-900">
+            <p className="mt-1 text-2xl font-extrabold text-[#10264e]">
               {result.orderReference}
             </p>
             {typeof result.subtotal === "number" && (
@@ -130,7 +130,7 @@ export default function CheckoutPage() {
           </div>
           <Link
             href="/"
-            className="mt-8 inline-flex rounded-full bg-green-600 px-7 py-3.5 text-sm font-bold text-white hover:bg-green-700"
+            className="mt-8 inline-flex rounded-full bg-[#258d3b] px-7 py-3.5 text-sm font-bold text-white hover:bg-[#19792f]"
           >
             Volver al inicio
           </Link>
@@ -142,17 +142,17 @@ export default function CheckoutPage() {
   if (items.length === 0) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12">
-        <section className="w-full max-w-lg rounded-[2rem] border border-gray-200 bg-white p-10 text-center shadow-sm">
+        <section className="w-full max-w-lg rounded-3xl border border-[#d9eaf4] bg-white p-10 text-center shadow-sm">
           <PackageCheck className="mx-auto h-12 w-12 text-gray-300" />
-          <h1 className="mt-4 text-2xl font-extrabold text-gray-900">
+          <h1 className="mt-4 text-2xl font-extrabold text-[#10264e]">
             Tu carrito está vacío
           </h1>
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="mt-2 text-sm text-slate-600">
             Añade productos antes de continuar con tu orden.
           </p>
           <Link
             href="/#products"
-            className="mt-6 inline-flex rounded-full bg-green-600 px-6 py-3 text-sm font-bold text-white"
+            className="mt-6 inline-flex rounded-full bg-[#258d3b] px-6 py-3 text-sm font-bold text-white"
           >
             Ver productos
           </Link>
@@ -162,8 +162,8 @@ export default function CheckoutPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 pb-16">
-      <header className="border-b border-gray-100 bg-white px-4 py-4">
+    <main className="min-h-screen bg-[#f0f8fd] pb-16">
+      <header className="border-b border-[#d9eaf4] bg-white px-4 py-4">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <Link href="/">
             <Image
@@ -176,7 +176,7 @@ export default function CheckoutPage() {
           </Link>
           <Link
             href="/cart"
-            className="flex items-center gap-2 text-sm font-semibold text-green-700 hover:underline"
+            className="flex items-center gap-2 text-sm font-semibold text-[#238c3c] hover:underline"
           >
             <ArrowLeft className="h-4 w-4" /> Volver al carrito
           </Link>
@@ -185,15 +185,15 @@ export default function CheckoutPage() {
 
       <div className="mx-auto grid max-w-6xl gap-7 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_380px]">
         <form onSubmit={submit} className="space-y-6">
-          <section className="rounded-[2rem] border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
-            <p className="text-sm font-bold uppercase tracking-wider text-green-700">
-              Checkout seguro
+          <section className="rounded-3xl border border-[#d9eaf4] bg-white p-6 shadow-sm sm:p-8">
+            <p className="text-sm font-bold uppercase tracking-wider text-[#238c3c]">
+              Solicitud de compra sin pago en línea
             </p>
-            <h1 className="mt-1 text-3xl font-extrabold text-gray-900">
+            <h1 className="mt-1 text-3xl font-extrabold text-[#10264e]">
               Completa tu orden
             </h1>
-            <p className="mt-2 text-sm leading-relaxed text-gray-500">
-              Solo procesamos productos sin receta. No escribas medicamentos, diagnósticos ni números de receta en este formulario.
+            <p className="mt-2 text-sm leading-relaxed text-slate-600">
+              Este formulario es para productos sin receta. No incluyas diagnósticos, medicamentos recetados ni números de receta. El envío no representa un pago ni garantiza disponibilidad.
             </p>
 
             <div className="mt-7 grid gap-5 sm:grid-cols-2">
@@ -234,8 +234,8 @@ export default function CheckoutPage() {
             </div>
           </section>
 
-          <section className="rounded-[2rem] border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
-            <h2 className="text-xl font-extrabold text-gray-900">
+          <section className="rounded-3xl border border-[#d9eaf4] bg-white p-6 shadow-sm sm:p-8">
+            <h2 className="text-xl font-extrabold text-[#10264e]">
               ¿Cómo quieres recibirla?
             </h2>
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -324,10 +324,10 @@ export default function CheckoutPage() {
                 type="checkbox"
                 checked={form.acceptedTerms}
                 onChange={(event) => update("acceptedTerms", event.target.checked)}
-                className="mt-1 h-4 w-4 rounded border-gray-300 accent-green-600"
+                className="mt-1 h-4 w-4 rounded border-gray-300 accent-[#258d3b]"
               />
               <span>
-                Acepto los <Link href="/terminos" className="font-semibold text-green-700 underline">términos</Link> y la <Link href="/privacidad" className="font-semibold text-green-700 underline">política de privacidad</Link>.
+                Acepto los <Link href="/terminos" className="font-semibold text-[#238c3c] underline">términos</Link> y la <Link href="/privacidad" className="font-semibold text-[#238c3c] underline">política de privacidad</Link>.
               </span>
             </label>
 
@@ -340,47 +340,47 @@ export default function CheckoutPage() {
             <button
               type="submit"
               disabled={submitting || !form.acceptedTerms}
-              className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-green-600 py-4 text-base font-bold text-white shadow-lg hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-[#258d3b] py-4 text-base font-bold text-white shadow-lg hover:bg-[#19792f] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {submitting ? "Enviando orden..." : "Enviar orden a la farmacia"}
             </button>
           </section>
         </form>
 
-        <aside className="h-fit rounded-[2rem] border border-gray-200 bg-white p-6 shadow-sm lg:sticky lg:top-6">
-          <h2 className="text-lg font-extrabold text-gray-900">Resumen</h2>
+        <aside className="h-fit rounded-3xl border border-[#d9eaf4] bg-white p-6 shadow-sm lg:sticky lg:top-6">
+          <h2 className="text-lg font-extrabold text-[#10264e]">Resumen</h2>
           <div className="mt-5 space-y-4">
             {items.map((item) => (
               <div key={item.id} className="flex justify-between gap-4 text-sm">
                 <span className="text-gray-600">
                   {item.quantity} × {item.name}
                 </span>
-                <span className="shrink-0 font-semibold text-gray-900">
+                <span className="shrink-0 font-semibold text-[#10264e]">
                   {money(item.price * item.quantity)}
                 </span>
               </div>
             ))}
           </div>
           <div className="my-5 border-t border-gray-100" />
-          <div className="flex justify-between text-lg font-extrabold text-gray-900">
+          <div className="flex justify-between text-lg font-extrabold text-[#10264e]">
             <span>Subtotal</span>
             <span>{money(subtotal)}</span>
           </div>
-          <p className="mt-2 text-xs leading-relaxed text-gray-500">
+          <p className="mt-2 text-xs leading-relaxed text-slate-600">
             La farmacia confirmará disponibilidad, IVU, tarifa de delivery y total final.
           </p>
 
           <div className="mt-6 space-y-3 border-t border-gray-100 pt-5 text-sm text-gray-600">
             <div className="flex gap-3">
-              <CreditCard className="h-5 w-5 shrink-0 text-green-600" />
+              <CreditCard className="h-5 w-5 shrink-0 text-[#238c3c]" />
               <span>Pagas al recoger o recibir, después de confirmar.</span>
             </div>
             <div className="flex gap-3">
-              <ShieldCheck className="h-5 w-5 shrink-0 text-green-600" />
+              <ShieldCheck className="h-5 w-5 shrink-0 text-[#238c3c]" />
               <span>No solicitamos tarjeta ni datos de receta.</span>
             </div>
             <div className="flex gap-3">
-              <MapPin className="h-5 w-5 shrink-0 text-green-600" />
+              <MapPin className="h-5 w-5 shrink-0 text-[#238c3c]" />
               <span>El delivery se confirma según tu ubicación.</span>
             </div>
           </div>
@@ -425,7 +425,7 @@ function FulfillmentOption({
   return (
     <label
       className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition ${
-        checked ? "border-green-500 bg-green-50" : "border-gray-200 hover:border-green-200"
+        checked ? "border-[#258d3b] bg-[#effaf1]" : "border-gray-200 hover:border-green-200"
       }`}
     >
       <input
@@ -435,12 +435,12 @@ function FulfillmentOption({
         onChange={onChange}
         className="sr-only"
       />
-      <span className={`rounded-xl p-2 ${checked ? "bg-green-600 text-white" : "bg-gray-100 text-gray-500"}`}>
+      <span className={`rounded-xl p-2 ${checked ? "bg-[#258d3b] text-white" : "bg-gray-100 text-slate-600"}`}>
         {icon}
       </span>
       <span>
-        <span className="block font-bold text-gray-900">{title}</span>
-        <span className="mt-1 block text-xs text-gray-500">{description}</span>
+        <span className="block font-bold text-[#10264e]">{title}</span>
+        <span className="mt-1 block text-xs text-slate-600">{description}</span>
       </span>
     </label>
   );
