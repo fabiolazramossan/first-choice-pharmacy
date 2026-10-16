@@ -44,12 +44,12 @@ export default function RefillForm() {
   };
 
   return (
-    <section id="refill" className="bg-white py-20">
+    <section id="refill" className="bg-white py-16 text-[#10264e]">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16">
           <div>
             <span className="inline-block rounded-full bg-green-100 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-green-700">
-              Smart Refill
+              Renovación de recetas
             </span>
             <h2 className="mt-4 text-3xl font-extrabold text-gray-900 sm:text-4xl">
               Solicita tu <span className="text-green-600">Refill</span>
@@ -110,7 +110,7 @@ export default function RefillForm() {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-gray-100 bg-white p-8 shadow-xl">
+          <div className="rounded-3xl border border-sky-100 bg-[#f8fcff] p-8 shadow-md">
             <AnimatePresence mode="wait">
               {status === "success" ? (
                 <motion.div
