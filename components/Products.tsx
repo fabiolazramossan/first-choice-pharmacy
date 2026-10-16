@@ -69,16 +69,16 @@ export default function Products() {
   }, []);
 
   return (
-    <section id="products" className="bg-white py-20">
+    <section id="products" className="bg-white py-12 text-[#10264e]">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="mb-12 text-center">
+        <div className="mb-8 text-left">
           <span className="inline-block rounded-full bg-blue-100 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-blue-700">
-            Catálogo en línea
+            Compra por categoría
           </span>
           <h2 className="mt-4 text-3xl font-extrabold text-gray-900 sm:text-4xl">
-            Nuestros Productos
+            Encuentra lo que necesitas
           </h2>
-          <p className="mx-auto mt-3 max-w-xl text-gray-500">
+          <p className="mt-3 max-w-xl text-slate-600">
             Explora nuestras categorías y consulta los productos disponibles.
           </p>
         </div>
@@ -113,7 +113,7 @@ export default function Products() {
                 transition={{ delay: i * 0.04 }}
                 whileHover={{ y: -6, scale: 1.02 }}
                 onClick={() => router.push(`/productos/${cat.slug}`)}
-                className="group relative cursor-pointer overflow-hidden rounded-3xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 p-5 shadow-sm transition-all duration-300 hover:border-green-200 hover:shadow-xl"
+                className="group relative cursor-pointer overflow-hidden rounded-2xl border border-sky-100 bg-gradient-to-br from-white to-[#f2f9fd] p-5 shadow-sm transition-all duration-300 hover:border-green-200 hover:shadow-xl"
               >
                 <div className="flex flex-col items-center text-center">
                   <div className="mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-3xl shadow-md transition-transform duration-300 group-hover:scale-110">
