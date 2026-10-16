@@ -42,6 +42,7 @@ export default function AdminLoginPage() {
             {loading ? "Verificando..." : "Entrar al panel"}
           </button>
         </form>
+        <a href="/admin/forgot-password" className="mt-5 inline-block text-sm text-emerald-300 underline">¿Olvidaste tu contraseña?</a>
       </div>
     </main>
   );
