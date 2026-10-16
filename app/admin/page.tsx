@@ -28,6 +28,7 @@ export default function AdminPage() {
   const sections = [
     ["Productos", "Catálogo, precios y publicación", "/admin/products"],
     ["Inventario", "Existencias y alertas de stock", "/admin/inventory"],
+    ["Auditoría de catálogo", "Verificar precios, imágenes, SKU y campos pendientes sin cambiar datos", "/admin/catalog-readiness"],
     ["Órdenes", "Pedidos, pagos y fulfillment", "/admin/orders"],
     ["Categorías", "Organización del catálogo", ""],
     ["Usuarios", "Personal y permisos", ""],
