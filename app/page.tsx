@@ -1,8 +1,6 @@
 "use client";
 
-import LoadingScreen from "@/components/LoadingScreen";
-import Navbar from "@/components/Navbar";
-import Hero from "@/components/Hero";
+import StorefrontIntro from "@/components/StorefrontIntro";
 import Services from "@/components/Services";
 import RefillForm from "@/components/RefillForm";
 import Products from "@/components/Products";
@@ -15,13 +13,11 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 export default function Home() {
   return (
     <>
-      <LoadingScreen />
-      <Navbar />
       <main>
-        <Hero />
+        <StorefrontIntro />
+        <Products />
         <Services />
         <RefillForm />
-        <Products />
         <Delivery />
         <About />
         <Contact />
