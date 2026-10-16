@@ -1,40 +1,16 @@
 "use client";
-
-import { motion } from "framer-motion";
-import { CheckCircle2 } from "lucide-react";
-import Reveal from "./Reveal";
-import { WHY_CHOOSE } from "@/lib/data";
-
+import { CheckCircle2, HeartPulse, ShieldCheck, Users, MapPin } from "lucide-react";
+import { BRAND } from "@/lib/data";
 export default function About() {
-  return (
-    <section id="about" className="relative bg-[#f3f9fd] py-16 text-[#10264e]">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <Reveal className="mx-auto max-w-xl text-center">
-          <span className="section-badge">Sobre nosotros</span>
-          <h2 className="mt-5 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
-            Tu salud es nuestra prioridad
-          </h2>
-        </Reveal>
-
-        <div className="mt-14 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {WHY_CHOOSE.map((item, i) => (
-            <Reveal key={item.title} delay={i * 0.06} className="lg:col-span-1 sm:col-span-1">
-              <motion.div
-                whileHover={{ y: -6 }}
-                className="h-full rounded-2xl border border-sky-100 bg-white p-6 shadow-sm"
-              >
-                <CheckCircle2 className="h-7 w-7 text-brand-green" />
-                <h3 className="mt-4 font-display text-base font-bold">
-                  {item.title}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-ink/60 dark:text-white/60">
-                  {item.desc}
-                </p>
-              </motion.div>
-            </Reveal>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
+  return <section id="about" className="bg-white py-16 text-[#10264e] sm:py-20"><div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
+    <div className="relative min-h-[320px] overflow-hidden rounded-3xl bg-gradient-to-br from-[#d8f3e1] to-[#c6ebfb]">
+      <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1100&q=85')] bg-cover bg-center" role="img" aria-label="Profesional de la salud"/>
+      <div className="absolute bottom-5 left-5 right-5 flex items-center gap-3 rounded-2xl bg-white/95 p-4 shadow-md"><HeartPulse className="text-[#268d3b]" size={28}/><div><p className="font-extrabold">Tu salud es nuestra prioridad</p><p className="text-xs text-slate-600">Atención cercana para nuestra comunidad</p></div></div>
+    </div>
+    <div><span className="text-xs font-extrabold uppercase tracking-widest text-[#238c3c]">Conócenos</span><h2 className="mt-3 text-3xl font-black leading-tight sm:text-4xl">Tu farmacia de confianza <span className="text-[#238c3c]">en San Juan</span></h2><p className="mt-5 text-base leading-7 text-slate-600">En First Choice Pharmacy trabajamos para ofrecer una experiencia sencilla, accesible y cercana para el cuidado de tu salud y la de tu familia.</p>
+      <div className="mt-7 grid gap-4 sm:grid-cols-2">
+        {[{icon:Users,title:"Atención personalizada",text:"Un equipo dispuesto a orientarte."},{icon:ShieldCheck,title:"Servicios de farmacia",text:"Consulta sobre recetas y vacunas."},{icon:HeartPulse,title:"Bienestar familiar",text:"Productos y servicios para distintas etapas."},{icon:MapPin,title:"Estamos cerca",text:"Ubicados en San Juan, Puerto Rico."}].map(({icon:Icon,title,text})=><div key={title} className="rounded-2xl border border-sky-100 bg-[#f5fbff] p-4"><Icon className="text-[#238c3c]" size={24}/><h3 className="mt-3 text-sm font-extrabold">{title}</h3><p className="mt-1 text-xs leading-5 text-slate-600">{text}</p></div>)}
+      </div><a href={BRAND.mapsLinkSrc} target="_blank" rel="noreferrer" className="mt-7 inline-flex items-center gap-2 rounded-full bg-[#0b6da8] px-6 py-3 text-sm font-bold text-white">Visítanos <CheckCircle2 size={16}/></a>
+    </div>
+  </div></section>;
 }
