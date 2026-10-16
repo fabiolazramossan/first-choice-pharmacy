@@ -17,7 +17,21 @@ export async function POST(request: Request) {
       body: JSON.stringify({ email: email.trim().toLowerCase() }),
       cache: "no-store",
     });
-    if (!response.ok) return NextResponse.json({ error: "No se pudo solicitar el enlace. Comprueba la configuración de URLs permitidas en Supabase." }, { status: 502 });
+    if (!response.ok) {
+      const upstreamStatus = response.status;
+      let reason = "unknown";
+      try {
+        const payload = await response.json() as { code?: string; error_code?: string };
+        reason = String(payload.code || payload.error_code || "unknown").slice(0, 80);
+      } catch { /* Do not expose upstream response contents. */ }
+      console.error("Password recovery rejected", { upstreamStatus, reason });
+      const message = upstreamStatus === 401
+        ? "Supabase rechazó la autenticación de la aplicación (401). Revisa la clave configurada y su vigencia."
+        : upstreamStatus === 429
+          ? "Demasiados intentos. Espera antes de solicitar otro enlace."
+          : "No se pudo enviar el enlace. Revisa la configuración de autenticación de Supabase.";
+      return NextResponse.json({ error: message, upstreamStatus, reason }, { status: 502 });
+    }
     return NextResponse.json({ message: "Si la cuenta existe, recibirás un enlace de recuperación." });
   } catch {
     return NextResponse.json({ error: "No se pudo solicitar el enlace." }, { status: 500 });
